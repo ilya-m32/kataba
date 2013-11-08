@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div id='header'>
+	<div id='header_content'>
+		{% if boards %}
+			&nbsp;
+			<span class='green'>
+			{%for board in boards %}
+				/<a href="/{{board.name}}">{{board.name}}</a>/&nbsp;
+			{%endfor%}
+			</span>
+		{% endif%}
+		Мамка в комнате: <input type="checkbox" id='nsfw'>
+	</div>
+	<span id='switch'>&lt;</span>
+</div>
+<br>
+<div class='fullcenter'><h1>Kataba <span class='orange'>2.0</span>: Django edition</h1></div>
+
+<div id='div_form'>
+	<form method="post" id='send_form' enctype="multipart/form-data">
+		{% csrf_token %}
+		
+		<div class='fullcenter'><b class='topic' id='form_switch'>{% block form_title %} {% endblock %}</b></div>
+		<div id='form_cont'>
+			{% block form %} {% endblock %}
+			<div class='button' id='send'>Отправить</div>
+		</div>	
+	</form>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

@@ -1,0 +1,39 @@
+#! -*- coding: utf-8 -*-
+from django.db import models
+from django import forms
+from captcha.fields import CaptchaField
+
+class board(models.Model):
+	name = models.CharField(max_length=4)
+	pages = models.IntegerField(default=4)
+	
+class thread(models.Model):
+	text = models.TextField(max_length=8000)
+	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
+	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
+	board_id = models.ForeignKey('board')
+	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
+	image = models.ImageField(upload_to='.',blank=False)
+	
+class post(models.Model):
+	text = models.TextField(max_length=8000)
+	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
+	sage = models.BooleanField(default=False)
+	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
+	thread_id = models.ForeignKey('thread')
+	board_id = models.ForeignKey('board')
+	image = models.ImageField(upload_to='.',blank=True)
+
+# Forms
+class addthread(forms.Form):
+	topic = forms.CharField(max_length=40,required=True,label=u'Тема',widget=forms.TextInput(attrs={'size':'30','value':u'Без темы'}))
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':'42'}),max_length=8000,required=True,label=u'Текст',error_messages={'required': 'Вы ничего не написали в сообщении'})
+	image = forms.ImageField(required=True,label=u'Изображение',error_messages={'required':'Для треда нужна пикча.','invalid_image':'Неверный формат изображения!'})
+	captcha = CaptchaField()
+
+class addpost(forms.Form):	
+	topic = forms.CharField(max_length=40,required=True,label=u'Тема',widget=forms.TextInput(attrs={'size':'30','value':u'Без темы'}))
+	sage = forms.BooleanField(required=False)
+	text = forms.CharField(widget=forms.Textarea(attrs={'cols':'42'}),max_length=8000,required=True,label=u'Текст',error_messages={'required': 'Вы ничего не написали в сообщении'})
+	image = forms.ImageField(required=False,label=u'Изображение',error_messages={'invalid_image':'Неверный формат изображения!'})
+	captcha = CaptchaField()

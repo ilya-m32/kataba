@@ -1,0 +1,40 @@
+{% extends "base_board.html" %}
+
+{% load markup %}
+
+{% block title %}
+{{thread.topic}}
+{% endblock %}
+
+{% block form_title %}Добавить пост{% endblock %}
+{% block form %}
+	<table>
+		{{ addpost }}
+	</table>
+{% endblock %}
+
+{% block content %}
+	<input id='thread_id' type='hidden' value='{{thread.id}}'>
+	<div class='thread' id='t{{thread.id}}'>
+		<div class='post_header'>&nbsp;
+			<div class='post_header_left'><b class='topic'>{{thread.topic}}</b> <span class='orange post_link'>#t{{thread.id}}</span> {{thread.date|date:"F d H:i:s"}}</div>
+		</div>
+		<div class='post_text'>
+			{% if thread.image %}
+				<div class='img_cont'>
+					<div><a href="/images/{{thread.image.name}}">{{thread.image.name|slice:"2:"|truncatechars:19}}</a></div>
+					<img class='post_img' src='/images/thumbnails/{{thread.image.name}}' data-alt_name='/images/{{thread.image.name}}' alt=''>
+				</div>
+			</div>
+			{% endif %}
+			{{thread.text|markup}}
+		</div>
+	</div>
+	<div class='post_cont' id='post_cont'>
+		{% for post in posts %}
+			{% include "parts/post.html" %}
+		{% endfor %}
+	</div>
+	<div class='button' id='refresh'>Обновить тред</div><div id='answer'></div>
+	<div class='button' id='up'>Наверх</div>
+{% endblock %}
