@@ -26,17 +26,6 @@ DATABASES = {
     }
 }
 
-#DATABASES = {
-    #'default': {
-        #'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        #'NAME': 'Ktan$kataba',                      # Or path to database file if using sqlite3.
-        #'USER': 'Ktan',                      # Not used with sqlite3.
-        #'PASSWORD': 'niggurath',                  # Not used with sqlite3.
-        #'HOST': '127.0.0.1',                      # Set to empty string for localhost. Not used with sqlite3.
-        #'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-    #}
-#}
-
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.4/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []
@@ -140,9 +129,7 @@ INSTALLED_APPS = (
     'board',
     'captcha',
     'board.templatetags',
-    # Uncomment the next line to enable the admin:
     'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
 )
 
@@ -151,6 +138,7 @@ INSTALLED_APPS = (
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
 #LOGGING = {
     #'version': 1,
     #'disable_existing_loggers': False,
