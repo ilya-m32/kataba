@@ -5,13 +5,19 @@ body {
 	font-family: Verdana;
 }
 
-#wrapper {
+html,body {
 	height: 100%;
-	position: relative;
 }
 
 h1,h2,h3 {
 	color: #A2C400;
+}
+
+#wrapper {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -30px;
 }
 
 #header {
@@ -95,6 +101,11 @@ b.sage {
 }
 
 span.orange, #switch {
+	color: #E6AD04;
+}
+
+span.quote {
+	font-style: italic;
 	color: #E6AD04;
 }
 
@@ -226,8 +237,10 @@ span.spoiler:hover {
 	margin-top: 5pt;
 }
 
-#bottom_cont {
-	position: absolute;
-	bottom: 0;
-	width: 100%;
+#content_wrapper {
+	overflow: auto;
+}
+
+#footer_wrapper, div.push {
+	height: 30px;
 }

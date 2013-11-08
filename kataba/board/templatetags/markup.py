@@ -7,7 +7,7 @@ def markup(string):
 	string = escape(string)
 
 	markups = [
-		[r'(?P<text>.*\&gt;.+)\n',r'<span class="orange">\g<text></span>\n'], # quote >text, does not work yet though
+		[r'(?P<text>\&gt;.+)\n',r'<span class="quote">\g<text></span>\n'], # quote >text
 		[r'\n',r'<br>'], # new line
 		[r'\*\*(?P<text>[^*%]+)\*\*',r'<b>\g<text></b>'], #bold **b**
 		[r'\*(?P<text>[^*%]+)\*',r'<i>\g<text></i>'], #cursive *i*

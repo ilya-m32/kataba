@@ -5,7 +5,7 @@ TEMPLATE_DEBUG = DEBUG
 
 # My settings
 
-DJANGO_DIR='/home/user/Django/kataba' # Path to dir with project
+DJANGO_DIR='/home/ilya/kataba/kataba' # Path to dir with project
 PIC_SIZE = 180.0 # Must be float!
 
 ADMINS = (

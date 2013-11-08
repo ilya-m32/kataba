@@ -45,7 +45,7 @@ $(document).ready(function() {
 		}
 		else {
 			$('img.post_img').css('opacity','1.0');
-			$.cookie('nsfw',false);
+			$.cookie('nsfw',false,{path: '/'});
 			temp_look(false);
 		}
 	});
@@ -57,7 +57,7 @@ $(document).ready(function() {
 	
 	// Enabling pages
 	$('#pages div').click(function() {
-		document.location.href='/'+$(this).attr('name');
+		document.location.href='/'+$(this).attr('data-name');
 	});
 
 	// Full image by click
@@ -113,7 +113,7 @@ $(document).ready(function() {
 			
 		}
 		else {	
-			$.cookie('form',false);
+			$.cookie('form',false,{path: '/'});
 		}
 		$('#form_cont').toggle();
 	});

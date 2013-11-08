@@ -12,9 +12,12 @@
 </head>
 <body>
 	<div id='wrapper'>
-		{% block header %} {% endblock %}
-		{% block content %} {% endblock %}
-		{% block footer %} {% endblock %}
+			{% block header %} {% endblock %}
+			{% block content %} {% endblock %}
+			<div class="push"></div>
 	</div>
+		<div id='footer_wrapper'>
+			{% block footer %} {% endblock %}
+		</div>
 </body>
 </html>

@@ -30,7 +30,6 @@
 			{% endif %}	
 			{{thread.op.text|truncatechars:1200|markup}}
 			</div>
-		</div>
 	<div class='post_cont' id='post_cont'>
 		{% for post in thread.other %}
 			{% include "parts/post.html" %}
@@ -45,7 +44,7 @@
 	<div id='bottom_cont'>
 		<div class='fullcenter' id='pages'>
 			{% for i in pages %}
-				<div class='button' name='{{boardname}}/{{i}}'>{{i}}</div>
+				<div class='button' data-name='{{boardname}}/{{i}}'>{{i}}</div>
 			{% endfor %}
 		</div>
 	</div>
