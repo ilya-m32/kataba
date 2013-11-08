@@ -16,6 +16,8 @@ function temp_look(type) {
 	
 $(document).ready(function() {
 	
+	
+	// Hide/show left upper menu
 	$('#switch').click(function() {
 		var swtch = $('#switch').html();
 		if (swtch == '&lt;') {
@@ -27,6 +29,7 @@ $(document).ready(function() {
 		}
 	});
 	
+	// NSFW option and it's cookies
 	if ($.cookie('nsfw') == 'true') {
 		$('img.post_img').css('opacity','0');
 		$('#nsfw').attr('checked',true);
@@ -37,7 +40,7 @@ $(document).ready(function() {
 		var nsfw = $('#nsfw').is(':checked');
 		if (nsfw) {
 			$('img.post_img').css('opacity','0');
-			$.cookie('nsfw',true);
+			$.cookie('nsfw',true,{path: '/'});
 			temp_look(true);
 		}
 		else {
@@ -47,14 +50,17 @@ $(document).ready(function() {
 		}
 	});
 	
+	// Send form
 	$('#send').click(function() {
 		$('#send_form').submit();
 	});
 	
+	// Enabling pages
 	$('#pages div').click(function() {
 		document.location.href='/'+$(this).attr('name');
 	});
 
+	// Full image by click
 	$('img.post_img').click(function() {
 		var temp = '';
 		temp = $(this).attr('src');
@@ -62,15 +68,18 @@ $(document).ready(function() {
 		$(this).attr('data-alt_name',temp);
 	});
 	
+	// Link to post/thread
 	$('span.post_link').click(function() {
 		var text = $('#id_text').val();
 		$('#id_text').val(text+'>>'+$(this).html().slice(1)) 
 	});
 	
+	// to the start
 	$('#up').click(function() {
 		document.location.href= window.location.pathname+'#'
 	});
 	
+	// AJAX request for new posts in thread
 	$('#refresh').click(function() {
 		var csrftoken = $.cookie('csrftoken');
 		var thread_id = $('#thread_id').val();
@@ -97,8 +106,18 @@ $(document).ready(function() {
 		});
 	});
 	
+	// Show/hide post form and it's cookie
 	$('#form_switch').click(function() {
+		if ($.cookie('form') == 'false') {
+			$.cookie('form',true,{path: '/'});
+			
+		}
+		else {	
+			$.cookie('form',false);
+		}
 		$('#form_cont').toggle();
 	});
 	
+	if ($.cookie('form') == 'true')
+		$('#form_cont').show();
 });
