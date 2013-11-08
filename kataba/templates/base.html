@@ -11,8 +11,10 @@
 	<script src='//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.2/jquery.cookie.min.js'></script>
 </head>
 <body>
-	{% block header %} {% endblock %}
-	{% block content %} {% endblock %}
-	{% block footer %} {% endblock %}
+	<div id='wrapper'>
+		{% block header %} {% endblock %}
+		{% block content %} {% endblock %}
+		{% block footer %} {% endblock %}
+	</div>
 </body>
 </html>

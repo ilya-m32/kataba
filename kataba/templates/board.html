@@ -39,9 +39,14 @@
 	{% empty %}
 		<div class='fullcenter'><h1>Тредов на этой странице нет!</h1></div>
 	{% endfor %}
-	<div class='fullcenter' id='pages'>
-		{% for i in pages %}
-			<div class='button' name='{{boardname}}/{{i}}'>{{i}}</div>
-		{% endfor %}
+{% endblock %}
+
+{% block footer %}
+	<div id='bottom_cont'>
+		<div class='fullcenter' id='pages'>
+			{% for i in pages %}
+				<div class='button' name='{{boardname}}/{{i}}'>{{i}}</div>
+			{% endfor %}
+		</div>
 	</div>
 {% endblock %}

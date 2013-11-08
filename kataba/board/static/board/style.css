@@ -5,6 +5,11 @@ body {
 	font-family: Verdana;
 }
 
+#wrapper {
+	height: 100%;
+	position: relative;
+}
+
 h1,h2,h3 {
 	color: #A2C400;
 }
@@ -219,4 +224,10 @@ span.spoiler:hover {
 #form_cont {
 	display: none;
 	margin-top: 5pt;
+}
+
+#bottom_cont {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
 }

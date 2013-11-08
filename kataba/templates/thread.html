@@ -35,6 +35,11 @@
 			{% include "parts/post.html" %}
 		{% endfor %}
 	</div>
-	<div class='button' id='refresh'>Обновить тред</div><div id='answer'></div>
-	<div class='button' id='up'>Наверх</div>
+{% endblock %}
+
+{% block footer %}
+	<div id='bottom_cont'>
+		<div class='button' id='refresh'>Обновить тред</div><div id='answer'></div>
+		<div class='button' id='up'>Наверх</div>
+	</div>
 {% endblock %}
