@@ -14,25 +14,23 @@
 {% endblock %}
 
 {% block content %}
-	<input id='thread_id' type='hidden' value='{{thread.id}}'>
-	<div class='thread' id='t{{thread.id}}'>
+	<input id='thread_id' type='hidden' value='{{thread.thread.id}}'>
+	<div class='thread' id='t{{thread.thread.id}}'>
 		<div class='post_header'>&nbsp;
-			<div class='post_header_left'><b class='topic'>{{thread.topic}}</b> <span class='orange post_link'>#t{{thread.id}}</span> {{thread.date|date:"F d H:i:s"}}</div>
+			<div class='post_header_left'><b class='topic'>{{thread.thread.topic}}</b> <span class='orange post_link'>#t{{thread.thread.id}}</span> {{thread.thread.date|date:"F d H:i:s"}}</div>
 		</div>
 		<div class='post_text'>
-			{% if thread.image %}
+			{% if thread.thread.image %}
 				<div class='img_cont'>
-					<div><a href="/images/{{thread.image.name}}">{{thread.image.name|slice:"2:"|truncatechars:19}}</a></div>
-					<img class='post_img' src='/images/thumbnails/{{thread.image.name}}' data-alt_name='/images/{{thread.image.name}}' alt=''>
+					<div><a href="/images/{{thread.thread.image.name}}">{{thread.thread.image.name|slice:"2:"|truncatechars:19}}</a></div>
+					<img class='post_img' src='/images/thumbnails/{{thread.thread.image.name}}' data-alt_name='/images/{{thread.thread.image.name}}' alt=''>
 				</div>
 			</div>
 			{% endif %}
-			{{thread.text|markup}}
+			{{thread.thread.text|markup}}
 	</div>
 	<div class='post_cont' id='post_cont'>
-		{% for post in posts %}
-			{% include "parts/post.html" %}
-		{% endfor %}
+		{% include "parts/posts.html" %}
 	</div>
 {% endblock %}
 

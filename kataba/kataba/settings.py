@@ -1,4 +1,11 @@
 from local_settings import *
+
+DEBUG = True
+
+# Kataba settings
+PIC_SIZE = 180.0 # Must be float!
+THREADS = 8 # Threads per page, must be integer
+
 # Django settings for kataba project.
 
 ADMINS = (
@@ -44,9 +51,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'nm%=^)wn3w^7s(*ta)+oyu6i9w1=tv)bjwp1ttbk0z+a&amp;or06l'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (

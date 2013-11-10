@@ -49,16 +49,24 @@ def viewboard(request, boardname, page):
 		thread_form = addthread()
 	
 	# Getting threads
-	op_posts = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[8*(page-1):8*page]
+	op_posts = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[settings.THREADS*(page-1):settings.THREADS*page]
 	
 	posts_numb = len(op_posts)
 	threads = [{} for i in xrange(posts_numb)]
 	# adding 3 posts there and forming massive with dict.
 	for i in xrange(0,posts_numb):
-		threads[i]['op'] = op_posts[i]
-		threads[i]['other'] = list(post.objects.filter(thread_id=op_posts[i].id))[-3:]
+		threads[i]['thread'] = op_posts[i]
+		threads[i]['posts'] = list(post.objects.filter(thread_id=op_posts[i].id).reverse())[-3:]
 		
-	args = {'boardname':boardname, 'boards':board.objects.all(), 'threads':threads, 'page':page,'pages':range(1,bd.pages+1), 'addthread':thread_form.as_table()}
+	args = {
+		'boardname':boardname,
+		'boards':board.objects.all(),
+		'threads':threads,
+		'page':page,
+		'pages':range(1,bd.pages+1),
+		'addthread':thread_form.as_table()
+	}
+	
 	return render(request,'board.html', args)
 	
 def viewthread(request,thread_id):
@@ -110,9 +118,18 @@ def viewthread(request,thread_id):
 			return HttpResponseRedirect('/thread/'+str(thread_id))
 	else:
 		post_form = addpost()
-		
-	posts = post.objects.filter(thread_id=thread_id)
-	args = {'boardname':boardname, 'boards':board.objects.all(), 'thread':th, 'posts':posts, 'addpost':post_form.as_table()}
+
+	threads = {}
+	
+	threads['thread'] = th
+	threads['posts'] = post.objects.filter(thread_id=thread_id)
+	
+	args = {
+		'boardname':boardname,
+		'boards':board.objects.all(),
+		'thread':threads,
+		'addpost':post_form.as_table()
+	}
 	return render(request,'thread.html', args)
 
 def viewpost(request,post_id):
@@ -132,7 +149,7 @@ def updatethread(request):
 	posts = posts[posts_numb:]
 	if len(posts):
 		is_new = 1 # there IS new posts
-		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'posts':posts})) # rendered html
+		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'thread':{'posts':posts}})) # rendered html
 	else:
 		is_new = 0 # and there is no...
 		template = '' # nothing because there is nothing to render
