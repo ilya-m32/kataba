@@ -6,6 +6,8 @@ from captcha.fields import CaptchaField
 class board(models.Model):
 	name = models.CharField(max_length=4)
 	pages = models.IntegerField(default=4)
+	def __unicode__(self):
+		return '/'+self.name+'/'
 	
 class thread(models.Model):
 	text = models.TextField(max_length=8000)
@@ -15,6 +17,9 @@ class thread(models.Model):
 	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
 	image = models.ImageField(upload_to='.',blank=False)
 	
+	def __unicode__(self):
+		return self.topic+': '+self.text[:40]+', '+str(self.date)
+	
 class post(models.Model):
 	text = models.TextField(max_length=8000)
 	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
@@ -23,6 +28,9 @@ class post(models.Model):
 	thread_id = models.ForeignKey('thread')
 	board_id = models.ForeignKey('board')
 	image = models.ImageField(upload_to='.',blank=True)
+	
+	def __unicode__(self):
+		return self.topic+': '+self.text[:40]+', '+str(self.date)
 
 # Forms
 class addthread(forms.Form):

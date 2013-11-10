@@ -1,12 +1,6 @@
 from local_settings import *
 # Django settings for kataba project.
 
-DEBUG = True
-#TEMPLATE_DEBUG = DEBUG
-
-# Kataba settings
-
-
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )

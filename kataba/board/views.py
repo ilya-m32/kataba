@@ -6,7 +6,7 @@ from time import strftime
 from django.conf import settings
 from django.template import RequestContext, loader
 from json import dumps
-import Image
+from board_functions import make_thumbnail
 
 
 def index(request):
@@ -14,14 +14,10 @@ def index(request):
 	return render(request,'index.html', args)
 
 def viewboard(request, boardname, page):
+	# get all boards
 	bd = get_object_or_404(board.objects,name=boardname)
 	
 	# is there page number?
-	try:
-		type(page)
-	except NameError:
-		page = 1
-		
 	if page == '':
 		page = 1
 	else:
@@ -35,17 +31,18 @@ def viewboard(request, boardname, page):
 	if request.method == 'POST':
 		thread_form = addthread(request.POST,request.FILES)
 		if thread_form.is_valid():
-			new_thread = thread(text=request.POST['text'],topic=request.POST['topic'],date=strftime('%Y-%m-%d %H:%M:%S'),board_id=bd,image=request.FILES['image'])
+			new_thread = thread(
+				text=request.POST['text'],
+				topic=request.POST['topic'],
+				date=strftime('%Y-%m-%d %H:%M:%S'),
+				board_id=bd,image=request.FILES['image']
+			)
 			new_thread.save()
 
 			# Making thumbnail
 			image = new_thread.image
-			
-			ratio = min(settings.PIC_SIZE/image.height,settings.PIC_SIZE/image.width)
-			thumbnail = Image.open(image.path)
-			thumbnail.thumbnail((int(image.width*ratio),int(image.height*ratio)),Image.ANTIALIAS)
-			thumbnail.save(settings.MEDIA_ROOT+'/thumbnails/'+image.name,thumbnail.format)
-			
+			make_thumbnail(image,settings)
+
 			return HttpResponseRedirect('/thread/'+str(new_thread.id))
 			
 	else:
@@ -73,10 +70,14 @@ def viewthread(request,thread_id):
 	if request.method == 'POST':
 		post_form = addpost(request.POST,request.FILES)
 		if post_form.is_valid():
+			
+			# Check for checkbox "Sage"
 			if 'sage' in request.POST.keys():
 				sage_val = 1
 			else:
 				sage_val = 0
+				
+			# Is there image?
 			if 'image' in request.FILES.keys():
 				image = request.FILES['image']
 			else:
@@ -86,7 +87,13 @@ def viewthread(request,thread_id):
 			time = strftime('%Y-%m-%d %H:%M:%S')
 			
 			# adding & saving new field	
-			new_post = post(text=request.POST['text'],board_id=bd,topic=request.POST['topic'],date=time,thread_id=th,image=image,sage=sage_val)
+			new_post = post(
+				text=request.POST['text'],
+				board_id=bd,
+				topic=request.POST['topic'],
+				date=time,thread_id=th,
+				image=image,sage=sage_val
+			)
 			new_post.save()
 			
 			# updating thread update_time
@@ -94,14 +101,10 @@ def viewthread(request,thread_id):
 				th.update_time = time
 				th.save()
 				
-			# Making thumbnail if there is an image
-			
 			if image:
 				image = new_post.image
-				ratio = min(settings.PIC_SIZE/image.height,settings.PIC_SIZE/image.width)
-				thumbnail = Image.open(image.path)
-				thumbnail.thumbnail((int(image.width*ratio),int(image.height*ratio)),Image.ANTIALIAS)
-				thumbnail.save(settings.MEDIA_ROOT+'/thumbnails/'+image.name,thumbnail.format)
+				# Making thumbnail if there is an image
+				make_thumbnail(image,settings)
 
 			# redirect to the new thread
 			return HttpResponseRedirect('/thread/'+str(thread_id))
@@ -127,11 +130,11 @@ def updatethread(request):
 	
 	posts = post.objects.filter(thread_id=thread_id)
 	posts = posts[posts_numb:]
-	if len(posts) > 0:
-		is_new = 1
-		template = loader.get_template('posts.html').render(RequestContext(request,{'posts':posts}))
+	if len(posts):
+		is_new = 1 # there IS new posts
+		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'posts':posts})) # rendered html
 	else:
-		is_new = 0
-		template = ''
+		is_new = 0 # and there is no...
+		template = '' # nothing because there is nothing to render
 	return HttpResponse(dumps({'is_new':is_new,'new_threads':template}),content_type="application/json")
 	

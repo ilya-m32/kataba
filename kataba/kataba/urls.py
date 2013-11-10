@@ -14,7 +14,7 @@ urlpatterns = patterns('',
 	url(r'^$',include('board.urls')),
 	
 	# Boards
-	url(r'^(?P<boardname>[a-z]{1,3})/(?P<page>[1-9]{0,2})$','board.views.viewboard',name='board'),
+	url(r'^(?P<boardname>[a-z]{1,3})/(?P<page>[1-9]?)$','board.views.viewboard',name='board'),
 	
 	# Threads
 	url(r'^thread/(?P<thread_id>[0-9]+)/$','board.views.viewthread',name='viewthread'),
