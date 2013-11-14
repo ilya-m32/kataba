@@ -50,9 +50,36 @@ $(document).ready(function() {
 		}
 	});
 	
-	// Send form
-	$('#send').click(function() {
+	// Create thread via form
+	$('#send_thread').click(function() {
 		$('#send_form').submit();
+	});
+
+	// Send post via ajax
+	$('#send_post').click(function() {
+		var csrftoken = $.cookie('csrftoken');
+		var thread_id = $('#thread_id').val();
+		var form_data = $('#send_form').serializeArray();
+		$.ajax({
+			type:'POST',
+			settings: {
+				crossDomain: false,
+			},
+			url: "/thread/"+thread_id+'/addpost',
+			data: {'data':form_data,'test':'test'},
+			beforeSend: function(xhr) {
+				$('#answer').html('Загружаем...');
+				xhr.setRequestHeader("X-CSRFToken", csrftoken);
+			},
+			success: function(output) {
+				if (output.is_new == 1) {
+					$('#post_cont').html($('#post_cont').html()+output.new_threads);
+					$('#answer').html('');
+				}
+				else
+					$('#answer').html('Новых постов нет!');
+			},
+		});
 	});
 	
 	// Enabling pages
@@ -85,14 +112,15 @@ $(document).ready(function() {
 		var thread_id = $('#thread_id').val();
 		var posts_numb = $('#post_cont div.post').length;
 		$.ajax({
-			type:'POST',
+			type:'GET',
 			settings: {
 				crossDomain: false,
+				cache: false,
 			},
-			url: "/thread/update",
-			data: {'posts_numb':posts_numb, 'thread_id':thread_id},
+			url: "/thread/update/"+thread_id+'/'+posts_numb,
+			data: {},
 			beforeSend: function(xhr) {
-				$('#answer').html('Загружаем...');
+				$('#answer').html('<progress max="25">Загружаем</progress>');
 				xhr.setRequestHeader("X-CSRFToken", csrftoken);
 			},
 			success: function(output) {
@@ -120,4 +148,18 @@ $(document).ready(function() {
 	
 	if ($.cookie('form') == 'true')
 		$('#form_cont').show();
+
+	// Show/hide options
+	$('#options_button').click(function() {
+		$('#options').toggle();
+	});
+
+	// Image validation
+	$(':file').change(function(){
+		var file = this.files[0];
+		size = file.size;
+		type = file.type;
+
+		// I'll write it later
+	});
 });

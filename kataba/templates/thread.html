@@ -3,7 +3,7 @@
 {% load markup %}
 
 {% block title %}
-{{thread.topic}}
+{{thread.thread.topic}}
 {% endblock %}
 
 {% block form_title %}Добавить пост{% endblock %}
@@ -11,10 +11,12 @@
 	<table>
 		{{ addpost }}
 	</table>
+	<input id='thread_id' type='hidden' value='{{thread.thread.id}}'>
+	<div class='button' id='send_post'>Отправить</div>
 {% endblock %}
 
 {% block content %}
-	<input id='thread_id' type='hidden' value='{{thread.thread.id}}'>
+	
 	<div class='thread' id='t{{thread.thread.id}}'>
 		<div class='post_header'>&nbsp;
 			<div class='post_header_left'><b class='topic'>{{thread.thread.topic}}</b> <span class='orange post_link'>#t{{thread.thread.id}}</span> {{thread.thread.date|date:"F d H:i:s"}}</div>

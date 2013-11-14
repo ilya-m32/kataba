@@ -11,7 +11,15 @@
 			{%endfor%}
 			</span>
 		{% endif%}
-		Мамка в комнате: <input type="checkbox" id='nsfw'>
+		<div id='options_button'>
+			Опции
+		</div>
+		<div id='options'>
+			Мамка в комнате: <input type="checkbox" id='nsfw'> <br>
+			Еще что-нибудь <br>
+			И еще один пунктик
+		</div>
+
 	</div>
 	<span id='switch'>&lt;</span>
 </div>
@@ -23,7 +31,6 @@
 		<div class='fullcenter'><b class='topic' id='form_switch'>{% block form_title %} {% endblock %}</b></div>
 		<div id='form_cont'>
 			{% block form %} {% endblock %}
-			<div class='button' id='send'>Отправить</div>
 		</div>	
 	</form>
 </div>

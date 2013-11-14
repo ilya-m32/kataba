@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
-from board.models import board, post, thread, addthread, addpost
+from board.models import board, post, thread, addthread_form, addpost_form
 from time import strftime
 from django.conf import settings
 from django.template import RequestContext, loader
@@ -29,7 +29,7 @@ def viewboard(request, boardname, page):
 	
 	# Add thread
 	if request.method == 'POST':
-		thread_form = addthread(request.POST,request.FILES)
+		thread_form = addthread_form(request.POST,request.FILES)
 		if thread_form.is_valid():
 			new_thread = thread(
 				text=request.POST['text'],
@@ -46,7 +46,7 @@ def viewboard(request, boardname, page):
 			return HttpResponseRedirect('/thread/'+str(new_thread.id))
 			
 	else:
-		thread_form = addthread()
+		thread_form = addthread_form()
 	
 	# Getting threads
 	op_posts = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[settings.THREADS*(page-1):settings.THREADS*page]
@@ -73,13 +73,41 @@ def viewthread(request,thread_id):
 	th = get_object_or_404(thread.objects,id=thread_id)
 	bd = th.board_id
 	boardname = th.board_id.name
+
+	# form
+	post_form = addpost_form()
 	
-	# Add post
+	threads = {}
+	
+	threads['thread'] = th
+	threads['posts'] = post.objects.filter(thread_id=thread_id)
+	
+	args = {
+		'boardname':boardname,
+		'boards':board.objects.all(),
+		'thread':threads,
+		'addpost':post_form.as_table()
+	}
+	return render(request,'thread.html', args)
+
+def viewpost(request,post_id):
+	return HttpResponseRedirect('/thread/'+str(get_object_or_404(post.objects,id=post_id).thread_id.id)+'/#p'+str(post_id))
+	
+def updatethread(request,thread_id, posts_numb):	
+	posts = post.objects.filter(thread_id=thread_id)
+	posts = posts[posts_numb:]
+	if len(posts):
+		is_new = 1 # there IS new posts
+		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'thread':{'posts':posts}})) # rendered html
+	else:
+		is_new = 0 # and there is no...
+		template = '' # nothing because there is nothing to render
+	return HttpResponse(dumps({'is_new':is_new,'new_threads':template}),content_type="application/json")
+	
+def addpost(request,thread_id):
 	if request.method == 'POST':
-		post_form = addpost(request.POST,request.FILES)
+		post_form = addpost_form(request.POST,request.FILES)
 		if post_form.is_valid():
-			
-			# Check for checkbox "Sage"
 			if 'sage' in request.POST.keys():
 				sage_val = 1
 			else:
@@ -115,43 +143,4 @@ def viewthread(request,thread_id):
 				make_thumbnail(image,settings)
 
 			# redirect to the new thread
-			return HttpResponseRedirect('/thread/'+str(thread_id))
-	else:
-		post_form = addpost()
-
-	threads = {}
-	
-	threads['thread'] = th
-	threads['posts'] = post.objects.filter(thread_id=thread_id)
-	
-	args = {
-		'boardname':boardname,
-		'boards':board.objects.all(),
-		'thread':threads,
-		'addpost':post_form.as_table()
-	}
-	return render(request,'thread.html', args)
-
-def viewpost(request,post_id):
-	return HttpResponseRedirect('/thread/'+str(get_object_or_404(post.objects,id=post_id).thread_id.id)+'/#p'+str(post_id))
-	
-def updatethread(request):
-	if request.method != 'POST':
-		return HttpResponseRedirect('/')
-	
-	if ('thread_id' not in request.POST.keys()) or 'posts_numb' not in request.POST.keys():
-		raise Http404
-	else:
-		thread_id = int(request.POST['thread_id'])
-		posts_numb = int(request.POST['posts_numb'])
-	
-	posts = post.objects.filter(thread_id=thread_id)
-	posts = posts[posts_numb:]
-	if len(posts):
-		is_new = 1 # there IS new posts
-		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'thread':{'posts':posts}})) # rendered html
-	else:
-		is_new = 0 # and there is no...
-		template = '' # nothing because there is nothing to render
-	return HttpResponse(dumps({'is_new':is_new,'new_threads':template}),content_type="application/json")
-	
+		return HttpResponse('bo')

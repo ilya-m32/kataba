@@ -33,13 +33,13 @@ class post(models.Model):
 		return self.topic+': '+self.text[:40]+', '+str(self.date)
 
 # Forms
-class addthread(forms.Form):
+class addthread_form(forms.Form):
 	topic = forms.CharField(max_length=40,required=True,label=u'Тема',widget=forms.TextInput(attrs={'size':'30','value':u'Без темы'}))
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':'42'}),max_length=8000,required=True,label=u'Текст',error_messages={'required': 'Вы ничего не написали в сообщении'})
 	image = forms.ImageField(required=True,label=u'Изображение',error_messages={'required':'Для треда нужна пикча.','invalid_image':'Неверный формат изображения!'})
 	captcha = CaptchaField()
 
-class addpost(forms.Form):	
+class addpost_form(forms.Form):	
 	topic = forms.CharField(max_length=40,required=True,label=u'Тема',widget=forms.TextInput(attrs={'size':'30','value':u'Без темы'}))
 	sage = forms.BooleanField(required=False)
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':'42'}),max_length=8000,required=True,label=u'Текст',error_messages={'required': 'Вы ничего не написали в сообщении'})

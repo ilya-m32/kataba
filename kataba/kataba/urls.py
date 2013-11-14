@@ -23,7 +23,10 @@ urlpatterns = patterns('',
 	url(r'^post/(?P<post_id>[0-9]+)/$','board.views.viewpost',name='viewpost'),
 	
 	# Update thread
-	url(r'^thread/update$','board.views.updatethread',name='updatethread'),
+	url(r'^thread/update/(?P<thread_id>[0-9]+)/(?P<posts_numb>[0-9]+)$','board.views.updatethread',name='updatethread'),
+
+	# Add post
+	url(r'^thread/(?P<thread_id>[0-9]+)/addpost$','board.views.addpost',name='addpost'),
 	
 	# Admin
 	url(r'^admin/', include(admin.site.urls)),

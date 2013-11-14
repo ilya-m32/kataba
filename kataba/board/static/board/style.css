@@ -39,6 +39,28 @@ div.title {
 	overflow: hidden;
 }
 
+#options_button {
+	display: inline-block;
+}
+
+#options_button:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+#options {
+	display: none;
+	margin-top: 1.2em;
+	position: fixed;
+	left: 0;
+	background-color: #2F2F2F;
+	color: #D0D0D0;
+	padding: 0.5em 0.5em 0.5em 8px;
+	border-radius: 0px 12px 12px 0;
+	border: 1px solid #595959;
+	border-left: 0px;
+}
+
 #header_content {
 	display: inline-block;
 }
@@ -128,7 +150,7 @@ a:hover, #form_switch:hover {
 	cursor: pointer;
 }
 
-b.topic, span.green {
+b.topic, span.green, #options_button {
 	color: #A2C400;
 }
 
