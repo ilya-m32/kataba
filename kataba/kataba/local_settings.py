@@ -1,6 +1,6 @@
 # Example of local settings
 # Should be renamed to local_settings.py
-DJANGO_DIR='/home/ilya/Django/kataba' # path to dir with project
+DJANGO_DIR='/home/user/Django/kataba' # path to dir with project
 
 DATABASES = {
     'default': {

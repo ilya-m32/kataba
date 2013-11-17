@@ -60,24 +60,24 @@ $(document).ready(function() {
 		var csrftoken = $.cookie('csrftoken');
 		var thread_id = $('#thread_id').val();
 		var form_data = $('#send_form').serializeArray();
+		var image = $('#id_image')[0].files[0];
+		
 		$.ajax({
 			type:'POST',
 			settings: {
 				crossDomain: false,
+				processData: false,
+				cache: false,
+                contentType: 'multipart/form-data',
 			},
 			url: "/thread/"+thread_id+'/addpost',
-			data: {'data':form_data,'test':'test'},
+			data: {'test':'test','image':image},
 			beforeSend: function(xhr) {
 				$('#answer').html('Загружаем...');
 				xhr.setRequestHeader("X-CSRFToken", csrftoken);
 			},
 			success: function(output) {
-				if (output.is_new == 1) {
-					$('#post_cont').html($('#post_cont').html()+output.new_threads);
-					$('#answer').html('');
-				}
-				else
-					$('#answer').html('Новых постов нет!');
+				alert('works');
 			},
 		});
 	});
@@ -155,7 +155,7 @@ $(document).ready(function() {
 	});
 
 	// Image validation
-	$(':file').change(function(){
+	$('#id_image').change(function(){
 		var file = this.files[0];
 		size = file.size;
 		type = file.type;
