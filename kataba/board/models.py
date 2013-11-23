@@ -16,6 +16,7 @@ class thread(models.Model):
 	board_id = models.ForeignKey('board')
 	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
 	image = models.ImageField(upload_to='.',blank=False)
+	post_count = models.IntegerField(default=0)
 	
 	def __unicode__(self):
 		return self.topic+': '+self.text[:40]+', '+str(self.date)
@@ -26,8 +27,8 @@ class post(models.Model):
 	sage = models.BooleanField(default=False)
 	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
 	thread_id = models.ForeignKey('thread')
-	board_id = models.ForeignKey('board')
 	image = models.ImageField(upload_to='.',blank=True)
+	
 	
 	def __unicode__(self):
 		return self.topic+': '+self.text[:40]+', '+str(self.date)

@@ -108,6 +108,11 @@ def addpost(request,thread_id):
 	if request.method == 'POST':
 		post_form = addpost_form(request.POST,request.FILES)
 		if post_form.is_valid():
+			
+			# Get thread Object
+			th = get_object_or_404(thread.objects,id=thread_id)
+			
+			# Sage?
 			if 'sage' in request.POST.keys():
 				sage_val = 1
 			else:
@@ -125,22 +130,28 @@ def addpost(request,thread_id):
 			# adding & saving new field	
 			new_post = post(
 				text=request.POST['text'],
-				board_id=bd,
 				topic=request.POST['topic'],
-				date=time,thread_id=th,
-				image=image,sage=sage_val
+				date=time,
+				thread_id=th,
+				image=image,
+				sage=sage_val
 			)
 			new_post.save()
 			
 			# updating thread update_time
-			if not sage_val:
+			if not sage_val and th.post_count < 500:
 				th.update_time = time
-				th.save()
+			
+			# Post count incrementation
+			th.post_count = th.post_count+1
+			
+			# Save changes
+			th.save()
 				
 			if image:
 				image = new_post.image
 				# Making thumbnail if there is an image
 				make_thumbnail(image,settings)
-
-			# redirect to the new thread
-		return HttpResponse('bo')
+		else:
+			return HttpResponse(dumps({'success':False,'form':post_form.as_table()}),content_type="application/json")
+		return HttpResponse(dumps({'success':True,'form':post_form.as_table()}),content_type="application/json")

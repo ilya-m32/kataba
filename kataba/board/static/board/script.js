@@ -15,8 +15,6 @@ function temp_look(type) {
 }
 	
 $(document).ready(function() {
-	
-	
 	// Hide/show left upper menu
 	$('#switch').click(function() {
 		var swtch = $('#switch').html();
@@ -59,25 +57,27 @@ $(document).ready(function() {
 	$('#send_post').click(function() {
 		var csrftoken = $.cookie('csrftoken');
 		var thread_id = $('#thread_id').val();
-		var form_data = $('#send_form').serializeArray();
-		var image = $('#id_image')[0].files[0];
+		
+		var form = new FormData(document.getElementById('send_form'));
 		
 		$.ajax({
 			type:'POST',
-			settings: {
-				crossDomain: false,
-				processData: false,
-				cache: false,
-                contentType: 'multipart/form-data',
-			},
+			crossDomain: false,
+			processData: false,
+			cache: false,
+            contentType: false,
+            MimeType: 'multipart/form-data',
 			url: "/thread/"+thread_id+'/addpost',
-			data: {'test':'test','image':image},
+			data: form,
 			beforeSend: function(xhr) {
-				$('#answer').html('Загружаем...');
 				xhr.setRequestHeader("X-CSRFToken", csrftoken);
 			},
 			success: function(output) {
-				alert('works');
+				if (output.success == true) {
+					$('#form_table input').val('');
+					$('#refresh').click();
+				}
+				$('#form_table').html(output.form);
 			},
 		});
 	});
@@ -113,20 +113,23 @@ $(document).ready(function() {
 		var posts_numb = $('#post_cont div.post').length;
 		$.ajax({
 			type:'GET',
-			settings: {
-				crossDomain: false,
-				cache: false,
-			},
+			crossDomain: false,
+			cache: false,
 			url: "/thread/update/"+thread_id+'/'+posts_numb,
 			data: {},
 			beforeSend: function(xhr) {
-				$('#answer').html('<progress max="25">Загружаем</progress>');
+				$('#answer').html('Загружаем...');
 				xhr.setRequestHeader("X-CSRFToken", csrftoken);
 			},
 			success: function(output) {
 				if (output.is_new == 1) {
 					$('#post_cont').html($('#post_cont').html()+output.new_threads);
 					$('#answer').html('');
+					
+					// move to the page's end
+					var url = location.href;
+					location.href = "#bottom_cont";
+					history.replaceState(null,null,url);
 				}
 				else
 					$('#answer').html('Новых постов нет!');
@@ -152,14 +155,5 @@ $(document).ready(function() {
 	// Show/hide options
 	$('#options_button').click(function() {
 		$('#options').toggle();
-	});
-
-	// Image validation
-	$('#id_image').change(function(){
-		var file = this.files[0];
-		size = file.size;
-		type = file.type;
-
-		// I'll write it later
 	});
 });

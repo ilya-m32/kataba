@@ -8,7 +8,7 @@
 
 {% block form_title %}Добавить пост{% endblock %}
 {% block form %}
-	<table>
+	<table id='form_table'>
 		{{ addpost }}
 	</table>
 	<input id='thread_id' type='hidden' value='{{thread.thread.id}}'>
