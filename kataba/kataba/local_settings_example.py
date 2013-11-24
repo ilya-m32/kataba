@@ -14,6 +14,7 @@ DATABASES = {
 }
 
 PIC_SIZE = 180.0 # Must be float!
+THREADS = 8 # Threads per page, must be integer
 
 TIME_ZONE = 'Asia/Yekaterinburg'
 

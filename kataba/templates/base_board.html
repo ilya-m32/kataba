@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block header %}
+
+{% block cloud %} {% endblock %}
+
 <div id='header'>
 	<div id='header_content'>
 		{% if boards %}
@@ -23,15 +26,13 @@
 	</div>
 	<span id='switch'>&lt;</span>
 </div>
-<div class='fullcenter title'>Kataba <span class='orange'>2.0</span>: Django edition</div>
-<div id='div_form'>
-	<form method="post" id='send_form' enctype="multipart/form-data">
-		{% csrf_token %}
-		
-		<div class='fullcenter'><b class='topic' id='form_switch'>{% block form_title %} {% endblock %}</b></div>
-		<div id='form_cont'>
-			{% block form %} {% endblock %}
-		</div>	
-	</form>
+
+<div class='fullcenter title'>
+	{% block cent_title %}Kataba <span class='orange'>2.0</span>: Django edition{% endblock %}
 </div>
+
+{% block form %} {% endblock %}
+
 {% endblock %}
+
+

@@ -3,15 +3,32 @@
 {% load markup %}
 
 {% block title %}
-/{{boardname}}/ #{{page}}
+/{{boardname}}/: #{{page}}
 {% endblock %}
 
-{% block form_title %}Создать тред{% endblock %}
+{% block cloud %}
+	<div class='button' id='cloud'>Облако</div>
+{% endblock %}
+
+{% block cent_title %}
+	Kataba: <span class='orange'>/b/</span>
+{% endblock %}
+
 {% block form %}
-	<table id='form_table'>
-		{{ addthread }}
-	</table>
-	<div class='button' id='send_thread'>Отправить</div>
+<div id='div_form'>
+	<form method="post" id='send_form' enctype="multipart/form-data">
+		{% csrf_token %}
+		<div class='fullcenter'><b class='topic' id='form_switch'>Создать тред</b></div>
+		<div id='form_cont'>
+			<input type='hidden' name='boardname' id='boardname' value='{{boardname}}'>
+			<table id='form_table'>
+				{{ addthread }}
+			</table>
+			<div class='button' id='send_thread'>Отправить</div>
+		</div>	
+	</form>
+	
+</div>
 {% endblock %}
 
 {% block content %}
@@ -30,7 +47,7 @@
 			</div>
 			{% endif %}	
 			{{thread.thread.text|truncatechars:1200|markup}}
-			</div>
+		</div>
 	<div class='post_cont' id='post_cont'>
 		{% include "parts/posts.html" %}
 	</div>

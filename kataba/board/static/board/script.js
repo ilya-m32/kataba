@@ -98,12 +98,17 @@ $(document).ready(function() {
 	// Link to post/thread
 	$('span.post_link').click(function() {
 		var text = $('#id_text').val();
-		$('#id_text').val(text+'>>'+$(this).html().slice(1)) 
+		$('#id_text').val(text+'>>'+$(this).html().slice(1));
 	});
 	
 	// to the start
 	$('#up').click(function() {
-		document.location.href= window.location.pathname+'#'
+		document.location.href = window.location.pathname+'#';
+	});
+	
+	// Move to cloud-like 
+	$('#cloud').click(function() {
+		document.location.href = '/'+$('#boardname').val()+'/cloud';
 	});
 	
 	// AJAX request for new posts in thread

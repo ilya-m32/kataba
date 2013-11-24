@@ -33,6 +33,9 @@ urlpatterns = patterns('',
 	
 	# Captcha
 	url(r'^captcha/', include('captcha.urls')),
+	
+	# Cloud thread vision
+	url(r'^(?P<boardname>[a-z]{1,3})/cloud$','board.views.cloud',name='addpost'),
 )
 
 #files

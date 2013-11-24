@@ -3,8 +3,6 @@ from local_settings import *
 DEBUG = True
 
 # Kataba settings
-PIC_SIZE = 180.0 # Must be float!
-THREADS = 8 # Threads per page, must be integer
 
 # Django settings for kataba project.
 

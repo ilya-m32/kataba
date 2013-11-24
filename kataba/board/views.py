@@ -155,3 +155,12 @@ def addpost(request,thread_id):
 		else:
 			return HttpResponse(dumps({'success':False,'form':post_form.as_table()}),content_type="application/json")
 		return HttpResponse(dumps({'success':True,'form':post_form.as_table()}),content_type="application/json")
+		
+def cloud(request,boardname):
+	bd = get_object_or_404(board.objects,name=boardname)
+	threads = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[:settings.THREADS*bd.pages]
+	args = {
+		'boardname':bd.name,
+		'threads':threads,
+	}
+	return render(request,'cloud.html',args)
