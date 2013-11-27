@@ -158,9 +158,14 @@ def addpost(request,thread_id):
 		
 def cloud(request,boardname):
 	bd = get_object_or_404(board.objects,name=boardname)
-	threads = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[:settings.THREADS*bd.pages]
+	threads = list(thread.objects.filter(board_id=bd).order_by('update_time').reverse())
+	if len(threads) % 3 != 0:
+		for i in xrange(0,(len(threads) % 3)-1):
+			threads.append([])
+	threads = [[threads[i],threads[i+1],threads[i+2]] for i in range(0,len(threads),3)]
 	args = {
 		'boardname':bd.name,
+		'boards':board.objects.all(),
 		'threads':threads,
 	}
 	return render(request,'cloud.html',args)

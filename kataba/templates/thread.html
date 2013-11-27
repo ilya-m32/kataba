@@ -10,11 +10,11 @@
 <div id='div_form'>
 	<form method="post" id='send_form' enctype="multipart/form-data">
 		<input type='hidden' name='thread_id' id='thread_id' value='{{thread.thread.id}}'>
-		
+		<input type='hidden' name='boardname' id='boardname' value='{{boardname}}'>
 		{% csrf_token %}
 		<div class='fullcenter'><b class='topic' id='form_switch'>Добавить пост</b></div>
 		<div id='form_cont'>
-			<input type='hidden' name='boardname' id='boardname' value='{{boardname}}'>
+			
 			<table id='form_table'>
 				{{ addpost }}
 			</table>

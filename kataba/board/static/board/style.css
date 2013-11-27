@@ -187,6 +187,16 @@ div.img_cont {
 	text-align: center;
 }
 
+div.img_cloud_cont {
+	clear: none;
+	font-size: 18px;
+}
+
+#cloud_cont {
+	display: table;
+	margin: 0 auto;
+}
+
 #div_form {
 	display: table;
 	margin: 0 auto 15pt auto;
@@ -252,7 +262,8 @@ span.spoiler:hover {
 
 #cloud {
 	font-size: 16px;
-	float: right;
+	position: absolute;
+	right: 0;
 	margin-right: 0.5em;
 }
 
