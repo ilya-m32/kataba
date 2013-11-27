@@ -1,0 +1,31 @@
+{% extends "base_board.html" %}
+
+{% block title %}
+/{{boardname}}/: Облако
+{% endblock %}
+
+{% block content %}
+	<div id='cloud_cont'>
+	{% for three_threads in threads %}
+		{% for thread in three_threads %}
+			{%if thread %}
+			<div class='img_cont img_cloud_cont'>
+				<div>
+					<a href="/thread/{{thread.id}}">{{thread.topic|slice:"2:"|truncatechars:19}}
+				</div>
+				<img class='img_cloud' src='/images/thumbnails/{{thread.image.name}}' data-alt_name='/images/{{thread.image.name}}' title='{{thread.text|truncatechars:40}}'>
+					</a>
+				<div>
+					[{{thread.post_count}}/500]
+				</div>	
+			</div>
+			{% endif %}
+		{% endfor %}
+		<br style='clear: both'>
+	{% empty %}
+		<div class='fullcenter'><h1>Тредов нет!</h1></div>
+	{% endfor %}
+		
+	</div>
+{% endblock %}
+
