@@ -7,6 +7,7 @@ from django.conf import settings
 from django.template import RequestContext, loader
 from json import dumps
 from board_functions import make_thumbnail
+from os import remove
 
 
 def index(request):
@@ -35,6 +36,7 @@ def viewboard(request, boardname, page):
 				text=request.POST['text'],
 				topic=request.POST['topic'],
 				date=strftime('%Y-%m-%d %H:%M:%S'),
+				update_time=strftime('%Y-%m-%d %H:%M:%S'),
 				board_id=bd,image=request.FILES['image']
 			)
 			new_thread.save()
@@ -42,6 +44,14 @@ def viewboard(request, boardname, page):
 			# Making thumbnail
 			image = new_thread.image
 			make_thumbnail(image,settings)
+			
+			# Remove old threads
+			threads_to_delete = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[bd.pages*settings.THREADS:]
+			if threads_to_delete != []:
+				for i in threads_to_delete:
+					remove(settings.MEDIA_ROOT+'/'+i.image.name)
+					remove(settings.MEDIA_ROOT+'/thumbnails/'+i.image.name)
+					i.delete()
 
 			return HttpResponseRedirect('/thread/'+str(new_thread.id))
 			
@@ -160,9 +170,9 @@ def cloud(request,boardname):
 	bd = get_object_or_404(board.objects,name=boardname)
 	threads = list(thread.objects.filter(board_id=bd).order_by('update_time').reverse())
 	if len(threads) % 3 != 0:
-		for i in xrange(0,(len(threads) % 3)-1):
+		for i in xrange(0,(len(threads) % 3)):
 			threads.append([])
-	threads = [[threads[i],threads[i+1],threads[i+2]] for i in range(0,len(threads),3)]
+	threads = [[threads[i],threads[i+1],threads[i+2]] for i in range(0,len(threads)-1,3)]
 	args = {
 		'boardname':bd.name,
 		'boards':board.objects.all(),

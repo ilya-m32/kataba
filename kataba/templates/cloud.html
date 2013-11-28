@@ -11,7 +11,7 @@
 			{%if thread %}
 			<div class='img_cont img_cloud_cont'>
 				<div>
-					<a href="/thread/{{thread.id}}">{{thread.topic|slice:"2:"|truncatechars:19}}
+					<a href="/thread/{{thread.id}}">{{thread.topic|truncatechars:19}}
 				</div>
 				<img class='img_cloud' src='/images/thumbnails/{{thread.image.name}}' data-alt_name='/images/{{thread.image.name}}' title='{{thread.text|truncatechars:40}}'>
 					</a>
