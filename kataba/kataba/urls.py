@@ -5,6 +5,7 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 # Admin
 from django.contrib import admin
 from board.models import post, board, thread
+
 admin.autodiscover()
 admin.site.register([post, thread, board])
 
@@ -28,15 +29,15 @@ urlpatterns = patterns('',
 	# Add post
 	url(r'^thread/(?P<thread_id>[0-9]+)/addpost$','board.views.addpost',name='addpost'),
 	
+	# Cloud thread vision
+	url(r'^(?P<boardname>[a-z]{1,3})/cloud$','board.views.cloud',name='addpost'),
+	
 	# Admin
 	url(r'^admin/', include(admin.site.urls)),
 	
 	# Captcha
 	url(r'^captcha/', include('captcha.urls')),
-	
-	# Cloud thread vision
-	url(r'^(?P<boardname>[a-z]{1,3})/cloud$','board.views.cloud',name='addpost'),
 )
 
-#files
+# Files
 urlpatterns += static('images', document_root='images/')

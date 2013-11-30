@@ -2,7 +2,16 @@
 
 {% block header %}
 
-{% block cloud %} {% endblock %}
+	<div id="search_cont">
+		<input type='text' id='search' name='search' required>
+		<select id='search_type' name='search_type' required>
+			<option value="1">Тема треда</option>
+			<option value="2">Текст треда</option>
+			<option value="3">Тема поста</option>
+			<option value="4">Текст поста</option>
+		</select>
+		<div class='button'>Найти</div>
+	</div>
 
 <div id='header'>
 	<div id='header_content'>
@@ -17,12 +26,13 @@
 		<div id='options_button'>
 			Опции
 		</div>
+		|
 		<div id='options'>
 			Мамка в комнате: <input type="checkbox" id='nsfw'> <br>
 			Еще что-нибудь <br>
 			И еще один пунктик
 		</div>
-
+		<a href="/{{boardname}}/cloud" id='cloud'>Облако</a>
 	</div>
 	<span id='switch'>&lt;</span>
 </div>

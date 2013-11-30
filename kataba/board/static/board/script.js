@@ -106,11 +106,6 @@ $(document).ready(function() {
 		document.location.href = window.location.pathname+'#';
 	});
 	
-	// Move to cloud-like 
-	$('#cloud').click(function() {
-		document.location.href = '/'+$('#boardname').val()+'/cloud';
-	});
-	
 	// AJAX request for new posts in thread
 	$('#refresh').click(function() {
 		var csrftoken = $.cookie('csrftoken');

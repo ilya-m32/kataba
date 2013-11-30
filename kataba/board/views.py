@@ -170,9 +170,9 @@ def cloud(request,boardname):
 	bd = get_object_or_404(board.objects,name=boardname)
 	threads = list(thread.objects.filter(board_id=bd).order_by('update_time').reverse())
 	if len(threads) % 3 != 0:
-		for i in xrange(0,(len(threads) % 3)):
+		for i in xrange(0,(3-(len(threads) % 3))):
 			threads.append([])
-	threads = [[threads[i],threads[i+1],threads[i+2]] for i in range(0,len(threads)-1,3)]
+	threads = [[threads[i],threads[i+1],threads[i+2]] for i in range(0,len(threads),3)]
 	args = {
 		'boardname':bd.name,
 		'boards':board.objects.all(),
