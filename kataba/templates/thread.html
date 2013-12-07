@@ -9,7 +9,7 @@
 {% block form %}
 <div id='div_form'>
 	<form method="post" id='send_form' enctype="multipart/form-data">
-		<input type='hidden' name='thread_id' id='thread_id' value='{{thread.thread.id}}'>
+		<input type='hidden' name='thread_id' id='thread_id' value='{{thread.id}}'>
 		<input type='hidden' name='boardname' id='boardname' value='{{boardname}}'>
 		{% csrf_token %}
 		<div class='fullcenter'><b class='topic' id='form_switch'>Добавить пост</b></div>
@@ -26,22 +26,13 @@
 
 {% block content %}
 	
-	<div class='thread' id='t{{thread.thread.id}}'>
-		<div class='post_header'>&nbsp;
-			<div class='post_header_left'><b class='topic'>{{thread.thread.topic}}</b> <span class='orange post_link'>#t{{thread.thread.id}}</span> {{thread.thread.date|date:"F d H:i:s"}}</div>
-		</div>
-		<div class='post_text'>
-			{% if thread.thread.image %}
-				<div class='img_cont'>
-					<div><a href="/images/{{thread.thread.image.name}}">{{thread.thread.image.name|slice:"2:"|truncatechars:19}}</a></div>
-					<img class='post_img' src='/images/thumbnails/{{thread.thread.image.name}}' data-alt_name='/images/{{thread.thread.image.name}}' alt=''>
-				</div>
-			</div>
-			{% endif %}
-			{{thread.thread.text|markup}}
-	</div>
+	{% include "parts/thread.html" %}
+	
+	
 	<div class='post_cont' id='post_cont'>
-		{% include "parts/posts.html" %}
+		{% for post in posts %}
+			{% include "parts/post.html" %}
+		{% endfor %}
 	</div>
 {% endblock %}
 

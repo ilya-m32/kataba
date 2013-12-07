@@ -13,6 +13,57 @@ function temp_look(type) {
 		images.unbind();
 		
 }
+
+function show_linked(selector) {
+	var original_selector = selector;
+	selector.hover(
+		function() {
+			var csrftoken = $.cookie('csrftoken');
+			var cont = $(this).children('div.post_quote');
+			var link_to = $(this).children('a.link_to_post').html().slice(8);
+			var type = '';
+
+			
+			if (link_to[0] == 't')
+				type = 'thread';
+			else
+				type = 'post';
+			
+			var id = parseInt(link_to.slice(1));
+			
+			var url = '/'+type+'/get/'+id+'/';
+			
+			$.ajax({
+				type:'GET',
+				crossDomain: false,
+				cache: true,
+				url: url,
+				data: {},
+				beforeSend: function(xhr) {
+					xhr.setRequestHeader("X-CSRFToken", csrftoken);
+				},
+				success: function(output) {
+					cont.html(output.answer);
+					selector = $(selector.selector); // Updating selector because new posts can contain new links.
+					
+					// Warning! Recursive call!
+					if (selector.length != original_selector.length) {
+						original_selector.unbind();
+						selector = show_linked(selector);
+					}
+				},
+			});
+			
+			cont.show();
+		},
+		function() {
+			var cont = $(this).children('div.post_quote');
+			cont.hide();
+		}
+	
+	);
+	return selector;
+}
 	
 $(document).ready(function() {
 	// Hide/show left upper menu
@@ -156,4 +207,10 @@ $(document).ready(function() {
 	$('#options_button').click(function() {
 		$('#options').toggle();
 	});
+	
+	// Show/hide quoted posts/threads
+	var links = $('div.link_to_content');
+	
+	links = show_linked(links);
+
 });

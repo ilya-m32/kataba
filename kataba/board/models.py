@@ -14,7 +14,7 @@ class thread(models.Model):
 	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
 	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
 	board_id = models.ForeignKey('board')
-	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
+	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
 	image = models.ImageField(upload_to='.',blank=False)
 	post_count = models.IntegerField(default=0)
 	

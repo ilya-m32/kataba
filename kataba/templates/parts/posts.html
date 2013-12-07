@@ -1,17 +1,3 @@
-{% load markup %}
-{% for post in thread.posts %}
-<div class='post' id='p{{post.id}}'>
-	<div class='post_header'>&nbsp;
-		<div class='post_header_left'><b class='topic'>{{post.topic}}</b> <span class='orange post_link'>#p{{post.id}}</span> {{post.date|date:"F d H:i:s"}} {% if post.sage %}<b class='sage'>SAGE</b>{%endif%}</div>
-	</div>
-	<div class='post_text'>
-		{% if post.image %}
-			<div class='img_cont'>
-			<div><a href="/images/{{post.image.name}}">{{post.image.name|slice:"2:"|truncatechars:19}} {{post.image.width}}x{{post.image.height}}</a></div>
-				<img class='post_img' src='/images/thumbnails/{{post.image.name}}' data-alt_name='/images/{{post.image.name}}' alt=''>
-			</div>
-		{% endif %}
-		{{post.text|markup}}
-	</div>
-</div>
+{% for post in posts %}
+	{% include "parts/post.html" %}
 {% endfor %}

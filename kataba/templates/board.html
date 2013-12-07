@@ -1,7 +1,5 @@
 {% extends "base_board.html" %}
 
-{% load markup %}
-
 {% block title %}
 /{{boardname}}/: #{{page}}
 {% endblock %}
@@ -28,25 +26,16 @@
 {% endblock %}
 
 {% block content %}
-	{% for thread in threads %}
-		<div class='thread' id='t{{thread.thread.id}}'>
-			<div class='post_header'>&nbsp;
-				<div class='post_header_left'><b class='topic'>{{thread.thread.topic}}</b> <span class='orange post_link'>#t{{thread.thread.id}}</span> {{thread.thread.date|date:"F d H:i:s"}}</div>
-				<div class='post_header_right'><a href='/thread/{{thread.thread.id}}'>Ответить</a></div>
-			</div>
-			<div class='post_text'>
-			{% if thread.thread.image %}
-				<div class='img_cont'>
-					<div><a href="/images/{{thread.thread.image.name}}">{{thread.thread.image.name|slice:"2:"|truncatechars:19}} {{thread.thread.image.width}}x{{thread.thread.image.height}}</a></div>
-					<img class='post_img' src='/images/thumbnails/{{thread.thread.image.name}}' data-alt_name='/images/{{thread.thread.image.name}}' alt=''>
-				</div>
-			</div>
-			{% endif %}	
-			{{thread.thread.text|truncatechars:1200|markup}}
+	{% for bundle in threads %}
+		{% with thread=bundle.thread %}
+			{% include "parts/thread.html" %}
+		{% endwith %}
+	
+		<div class='post_cont' id='post_cont'>
+			{% for post in bundle.posts %}
+				{% include "parts/post.html" %}
+			{% endfor %}
 		</div>
-	<div class='post_cont' id='post_cont'>
-		{% include "parts/posts.html" %}
-	</div>
 	{% empty %}
 		<div class='fullcenter'><h1>Тредов на этой странице нет!</h1></div>
 	{% endfor %}

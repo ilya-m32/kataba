@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 {% load staticfiles %}
-
+{% autoescape off %}
 <head>
 	<title>Kataba: {% block title %}{%endblock%}</title>
 	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
@@ -21,3 +21,4 @@
 		</div>
 </body>
 </html>
+{% endautoescape %}

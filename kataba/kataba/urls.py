@@ -20,8 +20,14 @@ urlpatterns = patterns('',
 	# Threads
 	url(r'^thread/(?P<thread_id>[0-9]+)/$','board.views.viewthread',name='viewthread'),
 	
-	# Posts
+	# Move to post
 	url(r'^post/(?P<post_id>[0-9]+)/$','board.views.viewpost',name='viewpost'),
+	
+	# Get single post
+	url(r'^post/get/(?P<post_id>[0-9]+)/$','board.views.getpost',name='getpost'),
+	
+	# Get single thread 
+	url(r'^thread/get/(?P<thread_id>[0-9]+)/$','board.views.getthread',name='getpost'),
 	
 	# Update thread
 	url(r'^thread/update/(?P<thread_id>[0-9]+)/(?P<posts_numb>[0-9]+)$','board.views.updatethread',name='updatethread'),

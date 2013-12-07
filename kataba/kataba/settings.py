@@ -2,10 +2,6 @@ from local_settings import *
 
 DEBUG = True
 
-# Kataba settings
-
-# Django settings for kataba project.
-
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
@@ -86,11 +82,11 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.admin',
+    'django.contrib.admindocs',
     'board', # main module
     'captcha', # captcha
     'board.templatetags', # tags for template
-    'django.contrib.admin',
-    'django.contrib.admindocs',
 )
 
 # A sample logging configuration. The only tangible logging

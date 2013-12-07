@@ -6,9 +6,10 @@ from time import strftime
 from django.conf import settings
 from django.template import RequestContext, loader
 from json import dumps
-from board_functions import make_thumbnail
 from os import remove
 
+from board_functions import make_thumbnail,markup
+from django.utils.html import escape
 
 def index(request):
 	args = {'boards':board.objects.all()}
@@ -32,12 +33,14 @@ def viewboard(request, boardname, page):
 	if request.method == 'POST':
 		thread_form = addthread_form(request.POST,request.FILES)
 		if thread_form.is_valid():
+			time = strftime('%Y-%m-%d %H:%M:%S')
 			new_thread = thread(
-				text=request.POST['text'],
-				topic=request.POST['topic'],
-				date=strftime('%Y-%m-%d %H:%M:%S'),
-				update_time=strftime('%Y-%m-%d %H:%M:%S'),
-				board_id=bd,image=request.FILES['image']
+				text=markup(request.POST['text']),
+				topic=escape(request.POST['topic']),
+				date=time,
+				update_time=time,
+				board_id=bd,
+				image=request.FILES['image']
 			)
 			new_thread.save()
 
@@ -54,7 +57,6 @@ def viewboard(request, boardname, page):
 					i.delete()
 
 			return HttpResponseRedirect('/thread/'+str(new_thread.id))
-			
 	else:
 		thread_form = addthread_form()
 	
@@ -71,6 +73,7 @@ def viewboard(request, boardname, page):
 	args = {
 		'boardname':boardname,
 		'boards':board.objects.all(),
+		'is_board':True,
 		'threads':threads,
 		'page':page,
 		'pages':range(1,bd.pages+1),
@@ -89,13 +92,13 @@ def viewthread(request,thread_id):
 	
 	threads = {}
 	
-	threads['thread'] = th
-	threads['posts'] = post.objects.filter(thread_id=thread_id)
+	posts = post.objects.filter(thread_id=thread_id)
 	
 	args = {
 		'boardname':boardname,
 		'boards':board.objects.all(),
-		'thread':threads,
+		'thread':th,
+		'posts': posts,
 		'addpost':post_form.as_table()
 	}
 	return render(request,'thread.html', args)
@@ -108,7 +111,7 @@ def updatethread(request,thread_id, posts_numb):
 	posts = posts[posts_numb:]
 	if len(posts):
 		is_new = 1 # there IS new posts
-		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'thread':{'posts':posts}})) # rendered html
+		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'posts':posts})) # rendered html
 	else:
 		is_new = 0 # and there is no...
 		template = '' # nothing because there is nothing to render
@@ -139,17 +142,17 @@ def addpost(request,thread_id):
 			
 			# adding & saving new field	
 			new_post = post(
-				text=request.POST['text'],
-				topic=request.POST['topic'],
-				date=time,
-				thread_id=th,
-				image=image,
-				sage=sage_val
+				text= markup(request.POST['text']),
+				topic = escape(request.POST['topic']),
+				date = time,
+				thread_id = th,
+				image = image,
+				sage = sage_val
 			)
 			new_post.save()
 			
 			# updating thread update_time
-			if not sage_val and th.post_count < 500:
+			if ((not sage_val) and (th.post_count < 500)):
 				th.update_time = time
 			
 			# Post count incrementation
@@ -179,3 +182,20 @@ def cloud(request,boardname):
 		'threads':threads,
 	}
 	return render(request,'cloud.html',args)
+	
+def getpost(request,post_id):
+	posts = post.objects.filter(id=post_id)
+	if posts != []:
+		answer = loader.get_template('parts/post.html').render(RequestContext(request,{'post':posts[0]})) # rendered html
+	else:
+		answer = '404'
+	return HttpResponse(dumps({'answer':answer}),content_type="application/json")
+	
+def getthread(request,thread_id):
+	threads = thread.objects.filter(id=thread_id)
+	if threads != []:
+		answer = loader.get_template('parts/thread.html').render(RequestContext(request,{'thread':threads[0]})) # rendered html
+	else:
+		answer = '404'
+	return HttpResponse(dumps({'answer':answer}),content_type="application/json")
+

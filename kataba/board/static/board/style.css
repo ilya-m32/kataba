@@ -286,3 +286,20 @@ span.spoiler:hover {
 	right: 0;
 	margin-right: 0.5em;
 }
+
+div.link_to_content {
+	padding: 0;
+	margin: 0;
+	display: inline-block;
+}
+
+div.post_quote {
+	background-color: inherit;
+	display: none;
+	position: absolute;
+	padding: 0;
+}
+
+div.post_quote div.post {
+	margin: 0;
+}
