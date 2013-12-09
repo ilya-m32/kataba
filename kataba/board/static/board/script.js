@@ -32,27 +32,28 @@ function show_linked(selector) {
 			var id = parseInt(link_to.slice(1));
 			
 			var url = '/'+type+'/get/'+id+'/';
-			
-			$.ajax({
-				type:'GET',
-				crossDomain: false,
-				cache: true,
-				url: url,
-				data: {},
-				beforeSend: function(xhr) {
-					xhr.setRequestHeader("X-CSRFToken", csrftoken);
-				},
-				success: function(output) {
-					cont.html(output.answer);
-					selector = $(selector.selector); // Updating selector because new posts can contain new links.
-					
-					// Warning! Recursive call!
-					if (selector.length != original_selector.length) {
-						original_selector.unbind();
-						selector = show_linked(selector);
-					}
-				},
-			});
+			if (cont.html() == '') {
+				$.ajax({
+					type:'GET',
+					crossDomain: false,
+					cache: true,
+					url: url,
+					data: {},
+					beforeSend: function(xhr) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					},
+					success: function(output) {
+						cont.html(output.answer);
+						selector = $(selector.selector); // Updating selector because new posts can contain new links.
+						
+						// Warning! Recursive call!
+						if (selector.length != original_selector.length) {
+							original_selector.unbind();
+							selector = show_linked(selector);
+						}
+					},
+				});
+			}
 			
 			cont.show();
 		},

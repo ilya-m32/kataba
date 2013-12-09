@@ -199,3 +199,5 @@ def getthread(request,thread_id):
 		answer = '404'
 	return HttpResponse(dumps({'answer':answer}),content_type="application/json")
 
+def search(request,search_type,search_text):
+	return HttpResponse("Works!")
