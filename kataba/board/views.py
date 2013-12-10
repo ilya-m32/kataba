@@ -5,6 +5,7 @@ from board.models import board, post, thread, addthread_form, addpost_form
 from time import strftime
 from django.conf import settings
 from django.template import RequestContext, loader
+from django.utils.html import escape
 from json import dumps
 from os import remove
 
@@ -199,5 +200,21 @@ def getthread(request,thread_id):
 		answer = '404'
 	return HttpResponse(dumps({'answer':answer}),content_type="application/json")
 
-def search(request,search_type,search_text):
+def search(request,boardname,search_type,search_text):
+	
+	# Making text safe
+	search_text = escape(search_text)
+	
+	if (boardname != 'everywhere'):
+		bd = get_object_or_404(board.objects,name=boardname)
+	else:
+		bd = False
+	
+	if (search_type == 'thread'):
+		result = thread.objects.filter(text__icontains=search_text)
+	elif (search_type == 'post'):
+		result = post.objects.filter(text__icontains=search_text)
+	else:
+		result = [thread.objects.filter(text__icontains=search_text),post.objects.filter(text__icontains=search_text)]
+	
 	return HttpResponse("Works!")

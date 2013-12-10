@@ -30,6 +30,6 @@ urlpatterns = patterns('',
 	url(r'^(?P<boardname>[a-z]{1,3})/cloud$','board.views.cloud',name='addpost'),
 	
 	# Search
-	url(r'^/search/(?P<search_type>(thread|post))/(?P<search_text>.+)$','board.views.search',name='addpost'),
+	url(r'^search/(?P<boardname>([a-z]{1,3}|everywhere))/(?P<search_type>(thread|post|both))/(?P<search_text>.+)$','board.views.search',name='addpost'),
 	
 )
