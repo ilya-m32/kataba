@@ -1,0 +1,31 @@
+{% extends "base_board.html" %}
+
+{% block title %}
+Поиск
+{% endblock %}
+
+{% block cent_title %}
+	Kataba: <span class='orange'>Поиск</span>
+{% endblock %}
+
+{% block content %}
+	
+	{% if threads %}
+		<h2>Треды:</h2>
+		{% for thread in threads %}
+				{% include "parts/thread.html" %}
+		{% empty %}
+			<div class='fullcenter'><h1>No threads found</h1></div>
+		{% endfor %}
+	{% endif %}
+	
+	{% if posts %}
+		<h2>Посты:</h2>
+		{% for post in posts %}
+			{% include "parts/post.html" %}
+		{% empty %}
+			<div class='fullcenter'><h1>No posts found</h1></div>
+		{% endfor %}
+	{% endif %}
+	
+{% endblock %}

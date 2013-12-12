@@ -149,8 +149,9 @@ $(document).ready(function() {
 	
 	// Link to post/thread
 	$('span.post_link').click(function() {
-		var text = $('#id_text').val();
-		$('#id_text').val(text+'>>'+$(this).html().slice(1));
+		var text_field = $('#id_text');
+		if (text_field.length)
+			text_field.val(text_field.val()+'>>'+$(this).html().slice(1));
 	});
 	
 	// to the start
@@ -214,4 +215,11 @@ $(document).ready(function() {
 	
 	links = show_linked(links);
 
+	$('#send_search').click(function() {
+		var search_board = $('#search_board').val();
+		var search_type = $('#search_type').val();
+		var search_place = $('#search_place').val();
+		var search_text = $('#search_text').val();
+		document.location.href='/search/'+search_board+'/'+search_type+'/'+search_place+'/'+search_text;
+	});
 });

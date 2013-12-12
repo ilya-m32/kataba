@@ -11,6 +11,7 @@ from os import remove
 
 from board_functions import make_thumbnail,markup
 from django.utils.html import escape
+from django.db.models import Q
 
 def index(request):
 	args = {'boards':board.objects.all()}
@@ -126,6 +127,9 @@ def addpost(request,thread_id):
 			# Get thread Object
 			th = get_object_or_404(thread.objects,id=thread_id)
 			
+			# Get board object
+			bd = th.board_id
+			
 			# Sage?
 			if 'sage' in request.POST.keys():
 				sage_val = 1
@@ -147,6 +151,7 @@ def addpost(request,thread_id):
 				topic = escape(request.POST['topic']),
 				date = time,
 				thread_id = th,
+				board_id = bd,
 				image = image,
 				sage = sage_val
 			)
@@ -200,7 +205,7 @@ def getthread(request,thread_id):
 		answer = '404'
 	return HttpResponse(dumps({'answer':answer}),content_type="application/json")
 
-def search(request,boardname,search_type,search_text):
+def search(request,boardname,search_type,search_place,search_text):
 	
 	# Making text safe
 	search_text = escape(search_text)
@@ -210,11 +215,45 @@ def search(request,boardname,search_type,search_text):
 	else:
 		bd = False
 	
-	if (search_type == 'thread'):
-		result = thread.objects.filter(text__icontains=search_text)
-	elif (search_type == 'post'):
-		result = post.objects.filter(text__icontains=search_text)
-	else:
-		result = [thread.objects.filter(text__icontains=search_text),post.objects.filter(text__icontains=search_text)]
+	args = {
+		'boards': board.objects.all(),
+		'threads': [],
+		'posts': [],
+	}
 	
-	return HttpResponse("Works!")
+	# Searching for threads
+	if (search_type == 'thread' or search_type == 'both'):
+		# We search within one board
+		if (bd):
+			query = thread.objects.filter(board_id=bd)
+		else:
+			query = thread.objects
+		
+		if (search_place == 'topic'):
+			query = query.filter(topic__icontains=search_text)
+		elif (search_place == 'text'):
+			query = query.filter(text__icontains=search_text)
+		elif (search_place == 'both'):
+			query = query.filter(Q(topic__icontains=search_text) | Q(text__icontains=search_text))
+		# Add results to the final dict.	
+		args['threads'].extend(query)
+	
+	# Searching for posts
+	if (search_type == 'post' or search_type == 'both'):
+		# We search within one board
+		if (bd):
+			query = post.objects.filter(board_id=bd)
+		else:
+			query = post.objects
+		
+		if (search_place == 'topic'):
+			query = query.filter(topic__icontains=search_text)
+		elif (search_place == 'text'):
+			query = query.filter(text__icontains=search_text)
+		elif (search_place == 'both'):
+			query = query.filter(Q(topic__icontains=search_text) | Q(text__icontains=search_text))
+		
+		# Add results to the final dict.	
+		args['posts'].extend(query)
+
+	return render(request,'search.html',args)

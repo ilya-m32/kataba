@@ -1,14 +1,25 @@
 {% extends "base.html" %}
 {% block header %}
 	<div id="search_cont">
-		<input type='text' id='search' name='search' required>
-		<select id='search_type' name='search_type' required>
-			<option value="1">Тема треда</option>
-			<option value="2">Текст треда</option>
-			<option value="3">Тема поста</option>
-			<option value="4">Текст поста</option>
+		<select id='search_board' name='search_board' required>
+			<option value="everywhere">Везде</option>
+			{% for board in boards %}
+				<option value="{{board.name}}">/{{board.name}}/</option>
+			{% endfor %}
 		</select>
-		<div class='button'>Найти</div>
+		
+		<select id='search_type' name='search_type' required>
+			<option value="both">Везде</option>
+			<option value="thread">Тред</option>
+			<option value="post">Пост</option>
+		</select>
+		<select id='search_place' name='search_place' required>
+			<option value="both">Везде</option>
+			<option value="topic">Тема</option>
+			<option value="text">Текст</option>
+		</select>
+		<input type='text' id='search_text' name='search_text' required>
+		<div class='button' id='send_search'>Найти</div>
 	</div>
 
 <div id='header'>
@@ -42,5 +53,3 @@
 {% block form %} {% endblock %}
 
 {% endblock %}
-
-

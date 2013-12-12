@@ -27,6 +27,7 @@ class post(models.Model):
 	sage = models.BooleanField(default=False)
 	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
 	thread_id = models.ForeignKey('thread')
+	board_id = models.ForeignKey('board')
 	image = models.ImageField(upload_to='.',blank=True)
 	
 	
