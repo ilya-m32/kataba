@@ -86,7 +86,6 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'board', # main module
     'captcha', # captcha
-    'board.templatetags', # tags for template
 )
 
 # A sample logging configuration. The only tangible logging

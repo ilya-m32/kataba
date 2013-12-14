@@ -14,7 +14,9 @@ from django.utils.html import escape
 from django.db.models import Q
 
 def index(request):
-	args = {'boards':board.objects.all()}
+	args = {
+		'boards' : board.objects.all()
+	}
 	return render(request,'index.html', args)
 
 def viewboard(request, boardname, page):
@@ -63,20 +65,20 @@ def viewboard(request, boardname, page):
 		thread_form = addthread_form()
 	
 	# Getting threads
-	op_posts = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[settings.THREADS*(page-1):settings.THREADS*page]
+	threads = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[settings.THREADS*(page-1):settings.THREADS*page]
 	
-	posts_numb = len(op_posts)
-	threads = [{} for i in xrange(posts_numb)]
+	threads_numb = len(threads)
+	thread_containter = [{} for i in xrange(threads_numb)]
+	
 	# adding 3 posts there and forming massive with dict.
-	for i in xrange(0,posts_numb):
-		threads[i]['thread'] = op_posts[i]
-		threads[i]['posts'] = list(post.objects.filter(thread_id=op_posts[i].id).reverse())[-3:]
-		
+	for i in xrange(threads_numb):
+		thread_containter[i]['thread'] = threads[i]
+		thread_containter[i]['posts'] = post.objects.filter(thread_id=threads[i].id).order_by('id').reverse()[:3]
 	args = {
 		'boardname':boardname,
 		'boards':board.objects.all(),
 		'is_board':True,
-		'threads':threads,
+		'threads':thread_containter,
 		'page':page,
 		'pages':range(1,bd.pages+1),
 		'addthread':thread_form.as_table()
@@ -106,22 +108,39 @@ def viewthread(request,thread_id):
 	return render(request,'thread.html', args)
 
 def viewpost(request,post_id):
-	return HttpResponseRedirect('/thread/'+str(get_object_or_404(post.objects,id=post_id).thread_id.id)+'/#p'+str(post_id))
+	
+	# Thread id
+	thread_id = get_object_or_404(post.objects,id=post_id).thread_id.id
+	
+	url = '/thread/'+str(thread_id)+'/#p'+str(post_id)
+	
+	return HttpResponseRedirect(url)
 	
 def updatethread(request,thread_id, posts_numb):	
-	posts = post.objects.filter(thread_id=thread_id)
-	posts = posts[posts_numb:]
+	
+	# All post from thread which are not in thread yet
+	posts = post.objects.filter(thread_id=thread_id)[posts_numb:]
+	
+	answer = {
+		'is_new':0,
+		'new_threads':""
+	}
+	
 	if len(posts):
-		is_new = 1 # there IS new posts
-		template = loader.get_template('parts/posts.html').render(RequestContext(request,{'posts':posts})) # rendered html
-	else:
-		is_new = 0 # and there is no...
-		template = '' # nothing because there is nothing to render
-	return HttpResponse(dumps({'is_new':is_new,'new_threads':template}),content_type="application/json")
+		answer['is_new'] = 1 # there IS new posts
+		answer['new_threads'] = loader.get_template('parts/posts.html').render(RequestContext(request,{'posts':posts})) # rendered html
+	
+	return HttpResponse(dumps(answer),content_type="application/json")
 	
 def addpost(request,thread_id):
 	if request.method == 'POST':
 		post_form = addpost_form(request.POST,request.FILES)
+		
+		answer = {
+			'success':False,
+			'form':post_form.as_table()
+		}
+		
 		if post_form.is_valid():
 			
 			# Get thread Object
@@ -166,22 +185,29 @@ def addpost(request,thread_id):
 			
 			# Save changes
 			th.save()
-				
-			if image:
+			
+			# Making thumbnail if there is an image
+			if (image):
 				image = new_post.image
-				# Making thumbnail if there is an image
 				make_thumbnail(image,settings)
-		else:
-			return HttpResponse(dumps({'success':False,'form':post_form.as_table()}),content_type="application/json")
-		return HttpResponse(dumps({'success':True,'form':post_form.as_table()}),content_type="application/json")
+			
+			answer['success'] = True
+				
+		return HttpResponse(dumps(answer),content_type="application/json")
 		
 def cloud(request,boardname):
 	bd = get_object_or_404(board.objects,name=boardname)
 	threads = list(thread.objects.filter(board_id=bd).order_by('update_time').reverse())
-	if len(threads) % 3 != 0:
-		for i in xrange(0,(3-(len(threads) % 3))):
-			threads.append([])
-	threads = [[threads[i],threads[i+1],threads[i+2]] for i in range(0,len(threads),3)]
+	
+	threads_len = len(threads)
+	
+	# Threads number mod 3 must be = 0
+	for i in xrange(3-(threads_len % 3)):
+		threads.append([])
+	
+	# Forming massive for cloud
+	threads = [[threads[i],threads[i+1],threads[i+2]] for i in xrange(0,len(threads),3)]
+	
 	args = {
 		'boardname':bd.name,
 		'boards':board.objects.all(),
@@ -190,20 +216,22 @@ def cloud(request,boardname):
 	return render(request,'cloud.html',args)
 	
 def getpost(request,post_id):
-	posts = post.objects.filter(id=post_id)
-	if posts != []:
-		answer = loader.get_template('parts/post.html').render(RequestContext(request,{'post':posts[0]})) # rendered html
-	else:
-		answer = '404'
-	return HttpResponse(dumps({'answer':answer}),content_type="application/json")
+	posts = {
+		'post': get_object_or_404(post.objects,id=post_id)[0]
+	}
+	answer = {
+		'answer':loader.get_template('parts/post.html').render(RequestContext(request,posts))
+	}
+	return HttpResponse(dumps(answer),content_type="application/json")
 	
 def getthread(request,thread_id):
-	threads = thread.objects.filter(id=thread_id)
-	if threads != []:
-		answer = loader.get_template('parts/thread.html').render(RequestContext(request,{'thread':threads[0]})) # rendered html
-	else:
-		answer = '404'
-	return HttpResponse(dumps({'answer':answer}),content_type="application/json")
+	threads = {
+		'thread':get_object_or_404(thread.objects,id=thread_id)[0]
+	}
+	answer = {
+		'answer':loader.get_template('parts/thread.html').render(RequestContext(request,thread))
+	} 
+	return HttpResponse(dumps(answer),content_type="application/json")
 
 def search(request,boardname,search_type,search_place,search_text):
 	
@@ -235,6 +263,7 @@ def search(request,boardname,search_type,search_place,search_text):
 			query = query.filter(text__icontains=search_text)
 		elif (search_place == 'both'):
 			query = query.filter(Q(topic__icontains=search_text) | Q(text__icontains=search_text))
+
 		# Add results to the final dict.	
 		args['threads'].extend(query)
 	

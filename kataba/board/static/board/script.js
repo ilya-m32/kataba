@@ -220,6 +220,10 @@ $(document).ready(function() {
 		var search_type = $('#search_type').val();
 		var search_place = $('#search_place').val();
 		var search_text = $('#search_text').val();
-		document.location.href='/search/'+search_board+'/'+search_type+'/'+search_place+'/'+search_text;
+		
+		if (search_text.length >= 3)
+			document.location.href='/search/'+search_board+'/'+search_type+'/'+search_place+'/'+search_text;
+		else
+			alert('Запрос слишком короткий!');
 	});
 });
