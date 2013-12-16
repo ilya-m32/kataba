@@ -4,6 +4,10 @@
 /{{boardname}}/: Облако
 {% endblock %}
 
+{% block cent_title %}
+	Облако: <span class='orange'>/{{boardname}}/</span>
+{% endblock %}
+
 {% block content %}
 	<div id='cloud_cont'>
 	{% for three_threads in threads %}

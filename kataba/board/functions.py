@@ -14,7 +14,7 @@ def make_thumbnail(image,settings):
 
 def markup(string):
 	"""
-		Makes markup for post and thread text. Makes strings safe.
+		Makes markup for post and thread text. Strings will be safe.
 	"""
 	
 	string = escape(string)

@@ -1,7 +1,13 @@
 {% extends "base_board.html" %}
 
 {% block title %}
-{{thread.topic}} # {{ thread.id }}
+{{thread.topic}} #{{ thread.id }}
+{% endblock %}
+
+{% block cloud_url %}/{{boardname}}/cloud {% endblock %}
+
+{% block cent_title %}
+	Kataba: <span class='orange'>{{thread.topic}}</span>
 {% endblock %}
 
 {% block form %}

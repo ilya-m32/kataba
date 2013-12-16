@@ -1,4 +1,3 @@
-
 function temp_look(type) {
 	var images = $('img.post_img');
 	if (type) {
@@ -22,7 +21,6 @@ function show_linked(selector) {
 			var cont = $(this).children('div.post_quote');
 			var link_to = $(this).children('a.link_to_post').html().slice(8);
 			var type = '';
-
 			
 			if (link_to[0] == 't')
 				type = 'thread';
@@ -32,7 +30,8 @@ function show_linked(selector) {
 			var id = parseInt(link_to.slice(1));
 			
 			var url = '/'+type+'/get/'+id+'/';
-			if (cont.html() == '') {
+			
+			if (!cont.html().length) {
 				$.ajax({
 					type:'GET',
 					crossDomain: false,

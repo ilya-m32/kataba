@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}
+Cloud
+{% endblock %}
+
+{% block content %}
+<div class="fullcenter">
+<h1>Облако</h1>
+{% if boards %}
+	<span class='green'>
+	{%for board in boards %}
+		/<a href="/{{board.name}}/cloud/">{{board.name}}</a>/&nbsp;&nbsp;
+	{%endfor%}
+	</span>
+{% endif%}
+</div>
+{% endblock %}

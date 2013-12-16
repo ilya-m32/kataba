@@ -6,6 +6,7 @@ from captcha.fields import CaptchaField
 class board(models.Model):
 	name = models.CharField(max_length=4)
 	pages = models.IntegerField(default=4)
+	
 	def __unicode__(self):
 		return '/'+self.name+'/'
 	
@@ -30,20 +31,59 @@ class post(models.Model):
 	board_id = models.ForeignKey('board')
 	image = models.ImageField(upload_to='.',blank=True)
 	
-	
 	def __unicode__(self):
 		return self.topic+': '+self.text[:40]+', '+str(self.date)
 
 # Forms
-class addthread_form(forms.Form):
-	topic = forms.CharField(max_length=40,required=True,label=u'Тема',widget=forms.TextInput(attrs={'size':'30','value':u'Без темы'}))
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':'42'}),max_length=8000,required=True,label=u'Текст',error_messages={'required': u'Вы ничего не написали в сообщении'})
-	image = forms.ImageField(required=True,label=u'Изображение',error_messages={'required':u'Для треда нужна пикча.','invalid_image':u'Неверный формат изображения!'})
+class thread_form(forms.Form):
+	topic = forms.CharField(
+		max_length = 40,
+		required = True,
+		label = u'Тема',
+		widget = forms.TextInput(
+			attrs = {
+				'size':'30',
+				'value':u'Без темы'
+			}
+		)
+	)
+	
+	text = forms.CharField(
+		widget = forms.Textarea(
+			attrs = {'cols':'42'}
+		),
+		max_length = 8000,
+		required = True,
+		label = u'Текст',
+		error_messages = {
+			'required': u'Вы ничего не написали в сообщении'
+		}
+	)
+	
+	image = forms.ImageField(
+		required = True,
+		label = u'Изображение',
+		error_messages = {
+			'required':u'Для треда нужна пикча.',
+			'invalid_image':u'Неверный формат изображения!'
+		}
+	)
+	
 	captcha = CaptchaField()
 
-class addpost_form(forms.Form):	
-	topic = forms.CharField(max_length=40,required=True,label=u'Тема',widget=forms.TextInput(attrs={'size':'30','value':u'Без темы'}))
+class post_form(thread_form):
+	def __init__(self,*args,**kwargs):
+		super(post_form,self).__init__(*args,**kwargs)
+		self.fields.keyOrder = [
+            'topic',
+            'sage',
+            'text',
+            'image',
+            'captcha'
+		]
+		
+		# Images are not required for posts
+		self.fields['image'].required = False
+	
 	sage = forms.BooleanField(required=False)
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':'42'}),max_length=8000,required=True,label=u'Текст',error_messages={'required': u'Вы ничего не написали в сообщении'})
-	image = forms.ImageField(required=False,label=u'Изображение',error_messages={'invalid_image':u'Неверный формат изображения!'})
-	captcha = CaptchaField()
+

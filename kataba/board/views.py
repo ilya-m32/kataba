@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
+
+# Django modules
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import render, redirect, get_object_or_404, get_list_or_404
-from board.models import board, post, thread, addthread_form, addpost_form
-from time import strftime
+from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.template import RequestContext, loader
 from django.utils.html import escape
+from django.db.models import Q
+
+# Python modules
 from json import dumps
 from os import remove
+from time import strftime
 
-from board_functions import make_thumbnail,markup
-from django.utils.html import escape
-from django.db.models import Q
+# My modules
+from board.models import board, post, thread, thread_form, post_form
+from board.functions import make_thumbnail,markup
 
 def index(request):
 	args = {
@@ -19,7 +23,7 @@ def index(request):
 	}
 	return render(request,'index.html', args)
 
-def viewboard(request, boardname, page):
+def board_view(request, boardname, page):
 	# get all boards
 	bd = get_object_or_404(board.objects,name=boardname)
 	
@@ -35,8 +39,8 @@ def viewboard(request, boardname, page):
 	
 	# Add thread
 	if request.method == 'POST':
-		thread_form = addthread_form(request.POST,request.FILES)
-		if thread_form.is_valid():
+		form = thread_form(request.POST,request.FILES)
+		if form.is_valid():
 			time = strftime('%Y-%m-%d %H:%M:%S')
 			new_thread = thread(
 				text=markup(request.POST['text']),
@@ -44,7 +48,7 @@ def viewboard(request, boardname, page):
 				date=time,
 				update_time=time,
 				board_id=bd,
-				image=request.FILES['image']
+				image=request.FILES['image'],
 			)
 			new_thread.save()
 
@@ -62,7 +66,7 @@ def viewboard(request, boardname, page):
 
 			return HttpResponseRedirect('/thread/'+str(new_thread.id))
 	else:
-		thread_form = addthread_form()
+		form = thread_form()
 	
 	# Getting threads
 	threads = thread.objects.filter(board_id=bd).order_by('update_time').reverse()[settings.THREADS*(page-1):settings.THREADS*page]
@@ -74,25 +78,27 @@ def viewboard(request, boardname, page):
 	for i in xrange(threads_numb):
 		thread_containter[i]['thread'] = threads[i]
 		thread_containter[i]['posts'] = post.objects.filter(thread_id=threads[i].id).order_by('id').reverse()[:3]
+
 	args = {
 		'boardname':boardname,
 		'boards':board.objects.all(),
-		'is_board':True,
+		'show_answer_thread':True,
+		'show_answer_post':False,
 		'threads':thread_containter,
 		'page':page,
 		'pages':range(1,bd.pages+1),
-		'addthread':thread_form.as_table()
+		'addthread':form.as_table()
 	}
 	
 	return render(request,'board.html', args)
 	
-def viewthread(request,thread_id):
+def thread_view(request,thread_id):
 	th = get_object_or_404(thread.objects,id=thread_id)
 	bd = th.board_id
 	boardname = th.board_id.name
 
 	# form
-	post_form = addpost_form()
+	form = post_form()
 	
 	threads = {}
 	
@@ -103,21 +109,17 @@ def viewthread(request,thread_id):
 		'boards':board.objects.all(),
 		'thread':th,
 		'posts': posts,
-		'addpost':post_form.as_table()
+		'addpost':form.as_table()
 	}
 	return render(request,'thread.html', args)
 
-def viewpost(request,post_id):
-	
+def post_view(request,post_id):
 	# Thread id
 	thread_id = get_object_or_404(post.objects,id=post_id).thread_id.id
-	
 	url = '/thread/'+str(thread_id)+'/#p'+str(post_id)
-	
 	return HttpResponseRedirect(url)
 	
-def updatethread(request,thread_id, posts_numb):	
-	
+def thread_update(request,thread_id, posts_numb):	
 	# All post from thread which are not in thread yet
 	posts = post.objects.filter(thread_id=thread_id)[posts_numb:]
 	
@@ -132,18 +134,18 @@ def updatethread(request,thread_id, posts_numb):
 	
 	return HttpResponse(dumps(answer),content_type="application/json")
 	
-def addpost(request,thread_id):
+def post_add(request,thread_id):
 	if request.method == 'POST':
-		post_form = addpost_form(request.POST,request.FILES)
+		form = post_form(request.POST,request.FILES)
 		
 		answer = {
 			'success':False,
-			'form':post_form.as_table()
+			'form':form.as_table()
 		}
 		
-		if post_form.is_valid():
+		if form.is_valid():
 			
-			# Get thread Object
+			# Get thread object
 			th = get_object_or_404(thread.objects,id=thread_id)
 			
 			# Get board object
@@ -176,7 +178,7 @@ def addpost(request,thread_id):
 			)
 			new_post.save()
 			
-			# updating thread update_time
+			# updating thread update time
 			if ((not sage_val) and (th.post_count < 500)):
 				th.update_time = time
 			
@@ -200,7 +202,7 @@ def cloud(request,boardname):
 	threads = list(thread.objects.filter(board_id=bd).order_by('update_time').reverse())
 	
 	threads_len = len(threads)
-	
+
 	# Threads number mod 3 must be = 0
 	for i in xrange(3-(threads_len % 3)):
 		threads.append([])
@@ -213,23 +215,29 @@ def cloud(request,boardname):
 		'boards':board.objects.all(),
 		'threads':threads,
 	}
-	return render(request,'cloud.html',args)
+	return render(request,'cloud/cloud.html',args)
 	
-def getpost(request,post_id):
+def cloud_index(request):
+	args = {
+		'boards' : board.objects.all()
+	}
+	return render(request,'cloud/index.html', args)
+	
+def post_get(request,post_id):
 	posts = {
-		'post': get_object_or_404(post.objects,id=post_id)[0]
+		'post': get_object_or_404(post.objects,id=post_id)
 	}
 	answer = {
 		'answer':loader.get_template('parts/post.html').render(RequestContext(request,posts))
 	}
 	return HttpResponse(dumps(answer),content_type="application/json")
 	
-def getthread(request,thread_id):
+def thread_get(request,thread_id):
 	threads = {
-		'thread':get_object_or_404(thread.objects,id=thread_id)[0]
+		'thread':get_object_or_404(thread.objects,id=thread_id)
 	}
 	answer = {
-		'answer':loader.get_template('parts/thread.html').render(RequestContext(request,thread))
+		'answer':loader.get_template('parts/thread.html').render(RequestContext(request,threads))
 	} 
 	return HttpResponse(dumps(answer),content_type="application/json")
 
@@ -247,6 +255,8 @@ def search(request,boardname,search_type,search_place,search_text):
 		'boards': board.objects.all(),
 		'threads': [],
 		'posts': [],
+		'show_answer_thread':True,
+		'show_answer_post':True,
 	}
 	
 	# Searching for threads
