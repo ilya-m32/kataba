@@ -9,30 +9,32 @@ class board(models.Model):
 	
 	def __unicode__(self):
 		return '/'+self.name+'/'
-	
-class thread(models.Model):
+		
+class post_template(models.Model):
 	text = models.TextField(max_length=8000)
 	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
 	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
 	board_id = models.ForeignKey('board')
-	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
-	image = models.ImageField(upload_to='.',blank=False)
+	image = models.ImageField(upload_to='.')
+	
+	def __unicode__(self):
+		return self.topic+': '+self.text[:40]+', '+str(self.date)
+	
+	
+	
+class thread(post_template):
+	def __init__(self,*args,**kwargs):
+		super(post_template,self).__init__(*args,**kwargs)
+
 	post_count = models.IntegerField(default=0)
+	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
+
+class post(post_template):
+	def __init__(self,*args,**kwargs):
+		super(post_template,self).__init__(*args,**kwargs)
 	
-	def __unicode__(self):
-		return self.topic+': '+self.text[:40]+', '+str(self.date)
-	
-class post(models.Model):
-	text = models.TextField(max_length=8000)
-	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
+	thread_id = models.ForeignKey('thread')	
 	sage = models.BooleanField(default=False)
-	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
-	thread_id = models.ForeignKey('thread')
-	board_id = models.ForeignKey('board')
-	image = models.ImageField(upload_to='.',blank=True)
-	
-	def __unicode__(self):
-		return self.topic+': '+self.text[:40]+', '+str(self.date)
 
 # Forms
 class thread_form(forms.Form):
@@ -47,7 +49,6 @@ class thread_form(forms.Form):
 			}
 		)
 	)
-	
 	text = forms.CharField(
 		widget = forms.Textarea(
 			attrs = {'cols':'42'}
