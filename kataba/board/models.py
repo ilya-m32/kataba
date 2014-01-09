@@ -3,6 +3,7 @@ from django.db import models
 from django import forms
 from captcha.fields import CaptchaField
 from django.conf import settings
+from exceptions import TypeError
 import os
 
 class board(models.Model):
@@ -10,34 +11,57 @@ class board(models.Model):
 	pages = models.IntegerField(default=4)
 	
 	def __unicode__(self):
-		return '/'+self.name+'/'
+		return ''.join(['/',self.name,'/'])
 		
-class post_template(models.Model):
+class SearchManager(models.Manager):
+	def search(self,search_text,search_place='topic',board=False):
+		# Search only within one board?
+		if (board):
+			query = self.filter(board_id=board)
+		else:
+			query = self
+		
+		# Where should we search?
+		if (search_place == 'topic'):
+			query = query.filter(topic__icontains=search_text)
+		elif (search_place == 'text'):
+			query = query.filter(text__icontains=search_text)
+		elif (search_place == 'both'):
+			query = query.filter(models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
+		
+		return query
+		
+class base_post_model(models.Model):
 	text = models.TextField(max_length=8000)
 	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
 	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
 	board_id = models.ForeignKey('board')
 	image = models.ImageField(upload_to='.')
 	
-	def delete(self,using=None):
+	# Custom Manager
+	objects = SearchManager()
+	
+	def delete(self,*args,**kwargs):
 		""" Rewrited version which also deletes images and thumbnails """
 		if (self.image):
-			os.remove(settings.MEDIA_ROOT+'/'+self.image.name)
-			os.remove(settings.MEDIA_ROOT+'/thumbnails/'+self.image.name)
-		super(post_template,self).delete(using)
+			os.remove(''.join([settings.MEDIA_ROOT,'/',self.image.name]))
+			os.remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]))
+		super(base_post_model,self).delete(*args,**kwargs)
 	
 	def __unicode__(self):
-		return self.topic+': '+self.text[:40]+', '+str(self.date)
+		return ''.join([self.topic,': ',self.text[:40],', ',str(self.date)])
 	
-	
-class thread(post_template):
+	class Meta:
+		abstract = True
+
+class thread(base_post_model):
 	def __init__(self,*args,**kwargs):
 		super(thread,self).__init__(*args,**kwargs)
 
 	post_count = models.IntegerField(default=0)
 	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
 
-class post(post_template):
+class post(base_post_model):
 	def __init__(self,*args,**kwargs):
 		super(post,self).__init__(*args,**kwargs)
 	
@@ -94,5 +118,5 @@ class post_form(thread_form):
 		# Images are not required for posts
 		self.fields['image'].required = False
 	
+	# Post can have sage
 	sage = forms.BooleanField(required=False)
-

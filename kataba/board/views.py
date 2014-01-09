@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.template import RequestContext, loader
 from django.utils.html import escape
-from django.db.models import Q
+
 
 # Python modules
 from json import dumps
@@ -60,11 +60,11 @@ def board_view(request, boardname, page):
 			threads_to_delete = models.thread.objects.filter(board_id=board).order_by('update_time').reverse()[board.pages*settings.THREADS:]
 			if not len(threads_to_delete):
 				for i in threads_to_delete:
-					remove(settings.MEDIA_ROOT+'/'+i.image.name)
-					remove(settings.MEDIA_ROOT+'/thumbnails/'+i.image.name)
+					remove(''.join([settings.MEDIA_ROOT,'/',i.image.name]))
+					remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',i.image.name]))
 					i.delete()
 
-			return HttpResponseRedirect('/thread/'+str(new_thread.id))
+			return HttpResponseRedirect(''.join(['/thread/',str(new_thread.id)]))
 	else:
 		form = models.thread_form()
 	
@@ -116,7 +116,7 @@ def thread_view(request,thread_id):
 def post_view(request,post_id):
 	# Thread id
 	thread_id = get_object_or_404(models.post.objects,id=post_id).thread_id.id
-	url = '/thread/'+str(thread_id)+'/#p'+str(post_id)
+	url = ''.join(['/thread/',str(thread_id),'/#p',str(post_id)])
 	return HttpResponseRedirect(url)
 	
 def thread_update(request,thread_id, posts_numb):	
@@ -253,46 +253,10 @@ def search(request,boardname,search_type,search_place,search_text):
 	
 	args = {
 		'boards': models.board.objects.all(),
-		'threads': [],
-		'posts': [],
+		'threads': models.thread.objects.search(search_text,search_place,board),
+		'posts': models.post.objects.search(search_text,search_place,board),
 		'show_answer_thread':True,
 		'show_answer_post':True,
 	}
-	
-	# Searching for threads
-	if (search_type == 'thread' or search_type == 'both'):
-		# We search within one board
-		if (board):
-			query = models.thread.objects.filter(board_id=board)
-		else:
-			query = models.thread.objects
-		
-		if (search_place == 'topic'):
-			query = query.filter(topic__icontains=search_text)
-		elif (search_place == 'text'):
-			query = query.filter(text__icontains=search_text)
-		elif (search_place == 'both'):
-			query = query.filter(Q(topic__icontains=search_text) | Q(text__icontains=search_text))
-
-		# Add results to the final dict.	
-		args['threads'].extend(query)
-	
-	# Searching for posts
-	if (search_type == 'post' or search_type == 'both'):
-		# We search within one board
-		if (board):
-			query = models.post.objects.filter(board_id=board)
-		else:
-			query = models.post.objects
-		
-		if (search_place == 'topic'):
-			query = query.filter(topic__icontains=search_text)
-		elif (search_place == 'text'):
-			query = query.filter(text__icontains=search_text)
-		elif (search_place == 'both'):
-			query = query.filter(Q(topic__icontains=search_text) | Q(text__icontains=search_text))
-		
-		# Add results to the final dict.	
-		args['posts'].extend(query)
 
 	return render(request,'search.html',args)
