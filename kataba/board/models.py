@@ -54,13 +54,17 @@ class base_post_model(models.Model):
 	
 	# Method which makes thumbnail. Surprise?
 	def make_thumbnail(self):
-		ratio = min(settings.PIC_SIZE/self.image.height,settings.PIC_SIZE/self.image.width)
-		thumbnail = Image.open(self.image.path)
-		thumbnail.thumbnail((int(self.image.width*ratio),int(self.image.height*ratio)),Image.ANTIALIAS)
-		thumbnail.save(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]),thumbnail.format)
+		if self.image:
+			ratio = min(settings.PIC_SIZE/self.image.height,settings.PIC_SIZE/self.image.width)
+			thumbnail = Image.open(self.image.path)
+			thumbnail.thumbnail((int(self.image.width*ratio),int(self.image.height*ratio)),Image.ANTIALIAS)
+			thumbnail.save(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]),thumbnail.format)
+			return True
+		else:
+			return False
 		
-
-	def markup(self, string):
+	@staticmethod
+	def markup(string):
 		""" Makes markup for post and thread text. Strings will be safe. """
 		string = escape(string)
 		markups = [
@@ -76,17 +80,18 @@ class base_post_model(models.Model):
 			string = sub(i[0],i[1],string)
 		return string
 
-	def save(self,*args,**kwargs):
-		
-		# Making tumbnail
-		if self.image:
-			make_thumbnail()
-		
+	def save(self,*args,**kwargs):	
 		# Markup
 		self.text = self.markup(self.text)
+
+		# Making topic safe for database
+		self.topic = escape(self.topic)
 		
 		# Calling original save method
 		super(base_post_model,self).save(*args,**kwargs)
+
+		# Making tumbnail
+		self.make_thumbnail()
 		
 	def __unicode__(self):
 		return ''.join([self.topic,': ',self.text[:40],', ',str(self.date)])
@@ -110,6 +115,13 @@ class thread(base_post_model):
 class post(base_post_model):
 	def __init__(self,*args,**kwargs):
 		super(post,self).__init__(*args,**kwargs)
+
+	def save(self,*args,**kwargs):
+		super(post,self).__init__(*args,**kwargs)
+
+		if ((not self.sage) and (self.thread_id.post_count < 500)):
+			self.thread_id.update_time = self.date
+			self.thread_id.save()
 	
 	thread_id = models.ForeignKey('thread')	
 	sage = models.BooleanField(default=False)

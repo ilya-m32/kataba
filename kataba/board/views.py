@@ -15,7 +15,6 @@ from time import strftime
 
 # My modules
 from board import models
-from board.functions import make_thumbnail,markup
 
 def index(request):
 	args = {
@@ -43,8 +42,8 @@ def board_view(request, boardname, page):
 		if form.is_valid():
 			time = strftime('%Y-%m-%d %H:%M:%S')
 			new_thread = models.thread(
-				text=markup(request.POST['text']),
-				topic=escape(request.POST['topic']),
+				text=request.POST['text'],
+				topic=request.POST['topic'],
 				date=time,
 				update_time=time,
 				board_id=board,
@@ -158,8 +157,8 @@ def post_add(request,thread_id):
 			
 			# adding & saving new field	
 			new_post = models.post(
-				text= markup(request.POST['text']),
-				topic = escape(request.POST['topic']),
+				text = request.POST['text'],
+				topic = request.POST['topic'],
 				date = time,
 				thread_id = thread,
 				board_id = board,
@@ -168,20 +167,8 @@ def post_add(request,thread_id):
 			)
 			new_post.save()
 			
-			# updating thread update time
-			if ((not sage_val) and (thread.post_count < 500)):
-				thread.update_time = time
-			
-			# Post count incrementation
-			thread.post_count = thread.post_count+1
-			
 			# Save changes
 			thread.save()
-			
-			# Making thumbnail if there is an image
-			if (image):
-				image = new_post.image
-				make_thumbnail(image,settings)
 			
 			answer['success'] = True
 				
