@@ -3,8 +3,10 @@ from django.db import models
 from django import forms
 from captcha.fields import CaptchaField
 from django.conf import settings
-from exceptions import TypeError
+from re import sub
+from django.utils.html import escape
 import os
+import Image
 
 class board(models.Model):
 	name = models.CharField(max_length=4)
@@ -15,6 +17,7 @@ class board(models.Model):
 		
 class SearchManager(models.Manager):
 	def search(self,search_text,search_place='topic',board=False):
+		
 		# Search only within one board?
 		if (board):
 			query = self.filter(board_id=board)
@@ -41,6 +44,7 @@ class base_post_model(models.Model):
 	# Custom Manager
 	objects = SearchManager()
 	
+	# Delete method which also removes image and its thumbnail
 	def delete(self,*args,**kwargs):
 		""" Rewrited version which also deletes images and thumbnails """
 		if (self.image):
@@ -48,6 +52,42 @@ class base_post_model(models.Model):
 			os.remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]))
 		super(base_post_model,self).delete(*args,**kwargs)
 	
+	# Method which makes thumbnail. Surprise?
+	def make_thumbnail(self):
+		ratio = min(settings.PIC_SIZE/self.image.height,settings.PIC_SIZE/self.image.width)
+		thumbnail = Image.open(self.image.path)
+		thumbnail.thumbnail((int(self.image.width*ratio),int(self.image.height*ratio)),Image.ANTIALIAS)
+		thumbnail.save(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]),thumbnail.format)
+		
+
+	def markup(self, string):
+		""" Makes markup for post and thread text. Strings will be safe. """
+		string = escape(string)
+		markups = [
+			[r'(?P<text>(?<!(&gt;))&gt;(?!(&gt;)).+)',r'<span class="quote">\g<text></span>'], # quote
+			[r'\*\*(?P<text>[^*%]+)\*\*',r'<b>\g<text></b>'], #bold **b**
+			[r'\*(?P<text>[^*%]+)\*',r'<i>\g<text></i>'], #cursive *i*
+			[r'\%\%(?P<text>[^*%]+)\%\%',r'<span class="spoiler">\g<text></span>'], #spoiler %%s%%
+			[r'\&gt;\&gt;t(?P<id>[0-9]+)',r'<div class="link_to_content"><a class="link_to_post" href="/thread/\g<id>">&gt;&gt;t\g<id></a><div class="post_quote"></div></div>'], # link to thread >t14
+			[r'\&gt;\&gt;p(?P<id>[0-9]+)',r'<div class="link_to_content"><a class="link_to_post" href="/post/\g<id>">&gt;&gt;p\g<id></a><div class="post_quote"></div></div>'], # link to post >p88
+			[r'\n',r'<br>'], # new line
+		]
+		for i in markups:
+			string = sub(i[0],i[1],string)
+		return string
+
+	def save(self,*args,**kwargs):
+		
+		# Making tumbnail
+		if self.image:
+			make_thumbnail()
+		
+		# Markup
+		self.text = self.markup(self.text)
+		
+		# Calling original save method
+		super(base_post_model,self).save(*args,**kwargs)
+		
 	def __unicode__(self):
 		return ''.join([self.topic,': ',self.text[:40],', ',str(self.date)])
 	
@@ -57,6 +97,12 @@ class base_post_model(models.Model):
 class thread(base_post_model):
 	def __init__(self,*args,**kwargs):
 		super(thread,self).__init__(*args,**kwargs)
+
+	def remove_old(self):
+		board = self.board_id
+		threads_to_delete = self.objects.filter(board_id=board).order_by('update_time').reverse()[self.board.pages*settings.THREADS:]
+		for i in threads_to_delete:
+			i.delete()
 
 	post_count = models.IntegerField(default=0)
 	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)

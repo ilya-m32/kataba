@@ -1,16 +1,7 @@
-import Image
+
 from re import sub
 from django.utils.html import escape
 
-def make_thumbnail(image,settings):
-	"""
-		Makes thumbnails from original image using size from local_settings.py. 
-	"""
-	
-	ratio = min(settings.PIC_SIZE/image.height,settings.PIC_SIZE/image.width)
-	thumbnail = Image.open(image.path)
-	thumbnail.thumbnail((int(image.width*ratio),int(image.height*ratio)),Image.ANTIALIAS)
-	thumbnail.save(''.join([settings.MEDIA_ROOT,'/thumbnails/',image.name]),thumbnail.format)
 
 def markup(string):
 	"""

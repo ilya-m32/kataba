@@ -51,18 +51,8 @@ def board_view(request, boardname, page):
 				image=request.FILES['image'],
 			)
 			new_thread.save()
-
-			# Making thumbnail
-			image = new_thread.image
-			make_thumbnail(image,settings)
 			
 			# Remove old threads
-			threads_to_delete = models.thread.objects.filter(board_id=board).order_by('update_time').reverse()[board.pages*settings.THREADS:]
-			if not len(threads_to_delete):
-				for i in threads_to_delete:
-					remove(''.join([settings.MEDIA_ROOT,'/',i.image.name]))
-					remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',i.image.name]))
-					i.delete()
 
 			return HttpResponseRedirect(''.join(['/thread/',str(new_thread.id)]))
 	else:
@@ -242,7 +232,6 @@ def thread_get(request,thread_id):
 	return HttpResponse(dumps(answer),content_type="application/json")
 
 def search(request,boardname,search_type,search_place,search_text):
-	
 	# Making text safe
 	search_text = escape(search_text)
 	
