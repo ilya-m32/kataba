@@ -17,7 +17,6 @@ class board(models.Model):
 		
 class SearchManager(models.Manager):
 	def search(self,search_text,search_place='topic',board=False):
-		
 		# Search only within one board?
 		if (board):
 			query = self.filter(board_id=board)
@@ -30,7 +29,7 @@ class SearchManager(models.Manager):
 		elif (search_place == 'text'):
 			query = query.filter(text__icontains=search_text)
 		elif (search_place == 'both'):
-			query = query.filter(models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
+			query = query.filter(3models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
 		
 		return query
 		
