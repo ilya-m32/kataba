@@ -167,6 +167,10 @@ def post_add(request,thread_id):
 			)
 			new_post.save()
 			
+			# Thread changes
+			thread.update_time = time
+			thread.post_count += 1
+			
 			# Save changes
 			thread.save()
 			
@@ -201,20 +205,20 @@ def cloud_index(request):
 	return render(request,'cloud/index.html', args)
 	
 def post_get(request,post_id):
-	posts = {
+	args = {
 		'post': get_object_or_404(models.post.objects,id=post_id)
 	}
 	answer = {
-		'answer':loader.get_template('parts/post.html').render(RequestContext(request,posts))
+		'answer':loader.get_template('parts/post.html').render(RequestContext(request,args))
 	}
 	return HttpResponse(dumps(answer),content_type="application/json")
 	
 def thread_get(request,thread_id):
-	threads = {
+	args = {
 		'thread':get_object_or_404(models.thread.objects,id=thread_id)
 	}
 	answer = {
-		'answer':loader.get_template('parts/thread.html').render(RequestContext(request,threads))
+		'answer':loader.get_template('parts/thread.html').render(RequestContext(request,args))
 	} 
 	return HttpResponse(dumps(answer),content_type="application/json")
 

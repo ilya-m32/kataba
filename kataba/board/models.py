@@ -29,7 +29,7 @@ class SearchManager(models.Manager):
 		elif (search_place == 'text'):
 			query = query.filter(text__icontains=search_text)
 		elif (search_place == 'both'):
-			query = query.filter(3models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
+			query = query.filter(models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
 		
 		return query
 		
@@ -50,9 +50,9 @@ class base_post_model(models.Model):
 			os.remove(''.join([settings.MEDIA_ROOT,'/',self.image.name]))
 			os.remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]))
 		super(base_post_model,self).delete(*args,**kwargs)
-	
-	# Method which makes thumbnail. Surprise?
+
 	def make_thumbnail(self):
+		"""# Method which makes thumbnail. Surprise?"""
 		if self.image:
 			ratio = min(settings.PIC_SIZE/self.image.height,settings.PIC_SIZE/self.image.width)
 			thumbnail = Image.open(self.image.path)
@@ -99,29 +99,25 @@ class base_post_model(models.Model):
 		abstract = True
 
 class thread(base_post_model):
-	def __init__(self,*args,**kwargs):
+	# Removing old threads
+	@classmethod
+	def remove_old_threads(cls,board):
+		threads_to_delete = cls.objects.filter(board_id=board).order_by('update_time').reverse()[board.pages*settings.THREADS:]
+		for thread in threads_to_delete:
+			thread.delete()
+		
+	def set_update_time(self,update_time):
+		self.update_time = update_time
+	
+	def save(self,*args,**kwargs):
 		super(thread,self).__init__(*args,**kwargs)
-
-	def remove_old(self):
-		board = self.board_id
-		threads_to_delete = self.objects.filter(board_id=board).order_by('update_time').reverse()[self.board.pages*settings.THREADS:]
-		for i in threads_to_delete:
-			i.delete()
+		# No old threads no more!
+		self.remove_old_threads(self.board_id)
 
 	post_count = models.IntegerField(default=0)
 	update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
 
 class post(base_post_model):
-	def __init__(self,*args,**kwargs):
-		super(post,self).__init__(*args,**kwargs)
-
-	def save(self,*args,**kwargs):
-		super(post,self).__init__(*args,**kwargs)
-
-		if ((not self.sage) and (self.thread_id.post_count < 500)):
-			self.thread_id.update_time = self.date
-			self.thread_id.save()
-	
 	thread_id = models.ForeignKey('thread')	
 	sage = models.BooleanField(default=False)
 
