@@ -1,12 +1,18 @@
 #! -*- coding: utf-8 -*-
+
+# Django
 from django.db import models
 from django import forms
 from captcha.fields import CaptchaField
 from django.conf import settings
-from re import sub
 from django.utils.html import escape
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+
+# Python
 import os
 import Image
+from re import sub
 
 class board(models.Model):
 	name = models.CharField(max_length=4)
@@ -17,6 +23,9 @@ class board(models.Model):
 		
 class SearchManager(models.Manager):
 	def search(self,search_text,search_place='topic',board=False):
+		# Making search text safe
+		search_text = escape(search_text)
+		
 		# Search only within one board?
 		if (board):
 			query = self.filter(board_id=board)
@@ -32,24 +41,26 @@ class SearchManager(models.Manager):
 			query = query.filter(models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
 		
 		return query
+
 		
 class base_post_model(models.Model):
 	text = models.TextField(max_length=8000)
 	topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
 	date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
-	board_id = models.ForeignKey('board')
 	image = models.ImageField(upload_to='.')
+	
+	# Link to board
+	board_id = models.ForeignKey('board')
 	
 	# Custom Manager
 	objects = SearchManager()
-	
-	# Delete method which also removes image and its thumbnail
-	def delete(self,*args,**kwargs):
-		""" Rewrited version which also deletes images and thumbnails """
-		if (self.image):
+
+	# Delete image and it's thumbnail
+	def delete_images(self,full_image=True,thumbnail=True):
+		if full_image:
 			os.remove(''.join([settings.MEDIA_ROOT,'/',self.image.name]))
+		if thumbnail:
 			os.remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]))
-		super(base_post_model,self).delete(*args,**kwargs)
 
 	def make_thumbnail(self):
 		"""# Method which makes thumbnail. Surprise?"""
@@ -103,15 +114,15 @@ class thread(base_post_model):
 	@classmethod
 	def remove_old_threads(cls,board):
 		threads_to_delete = cls.objects.filter(board_id=board).order_by('update_time').reverse()[board.pages*settings.THREADS:]
-		for thread in threads_to_delete:
-			thread.delete()
+		for th in threads_to_delete:
+			th.delete()
 		
 	def set_update_time(self,update_time):
 		self.update_time = update_time
 	
 	def save(self,*args,**kwargs):
-		super(thread,self).__init__(*args,**kwargs)
-		# No old threads no more!
+		super(thread,self).save(*args,**kwargs)
+		# No more old threads!
 		self.remove_old_threads(self.board_id)
 
 	post_count = models.IntegerField(default=0)
@@ -173,3 +184,9 @@ class post_form(thread_form):
 	
 	# Post can have sage
 	sage = forms.BooleanField(required=False)
+	
+# Use callback to delete images ('cause COLLADE does not call .delete())
+@receiver(pre_delete,sender=thread)
+@receiver(pre_delete,sender=post)
+def pre_delete_callback(sender,**kwargs):
+	kwargs['instance'].delete_images()

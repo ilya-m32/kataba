@@ -1,4 +1,7 @@
 from local_settings import *
+import os
+
+DJANGO_DIR=''.join([os.path.dirname(os.path.realpath(__file__)),'/../'])
 
 DEBUG = True
 
@@ -14,7 +17,7 @@ ALLOWED_HOSTS = []
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = DJANGO_DIR+'/images/'
+MEDIA_ROOT = ''.join([DJANGO_DIR,'/images/'])
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.

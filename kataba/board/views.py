@@ -61,19 +61,19 @@ def board_view(request, boardname, page):
 	threads = models.thread.objects.filter(board_id=board).order_by('update_time').reverse()[settings.THREADS*(page-1):settings.THREADS*page]
 	
 	threads_numb = len(threads)
-	thread_containter = [{} for i in xrange(threads_numb)]
+	thread_container = [{} for i in xrange(threads_numb)]
 	
 	# adding 3 posts there and forming massive with dict.
 	for i in xrange(threads_numb):
-		thread_containter[i]['thread'] = threads[i]
-		thread_containter[i]['posts'] = models.post.objects.filter(thread_id=threads[i].id).order_by('id').reverse()[:3]
+		thread_container[i]['thread'] = threads[i]
+		thread_container[i]['posts'] = models.post.objects.filter(thread_id=threads[i].id).order_by('id').reverse()[:3]
 
 	args = {
 		'boardname':boardname,
 		'boards':models.board.objects.all(),
 		'show_answer_thread':True,
 		'show_answer_post':False,
-		'threads':thread_containter,
+		'threads':thread_container,
 		'page':page,
 		'pages':range(1,board.pages+1),
 		'addthread':form.as_table()
@@ -161,9 +161,9 @@ def post_add(request,thread_id):
 				topic = request.POST['topic'],
 				date = time,
 				thread_id = thread,
-				board_id = board,
 				image = image,
-				sage = sage_val
+				sage = sage_val,
+				board_id = board
 			)
 			new_post.save()
 			
@@ -222,10 +222,7 @@ def thread_get(request,thread_id):
 	} 
 	return HttpResponse(dumps(answer),content_type="application/json")
 
-def search(request,boardname,search_type,search_place,search_text):
-	# Making text safe
-	search_text = escape(search_text)
-	
+def search(request,boardname,search_type,search_place,search_text):	
 	if (boardname != 'everywhere'):
 		board = get_object_or_404(models.board.objects,name=boardname)
 	else:
@@ -233,8 +230,8 @@ def search(request,boardname,search_type,search_place,search_text):
 	
 	args = {
 		'boards': models.board.objects.all(),
-		'threads': models.thread.objects.search(search_text,search_place,board),
-		'posts': models.post.objects.search(search_text,search_place,board),
+		'threads': models.thread.objects.search(search_text,search_place,board) if search_type != 'post' else [],
+		'posts': models.post.objects.search(search_text,search_place,board) if search_type != 'thread' else [],
 		'show_answer_thread':True,
 		'show_answer_post':True,
 	}

@@ -1,11 +1,11 @@
-function temp_look(type) {
-	var images = $('img.post_img');
-	if (type) {
-		images.mouseenter(function() {
+function temp_look(is_nsfw,selector) {
+
+	if (is_nsfw) {
+		selector.mouseenter(function() {
 			$(this).css('opacity','1.0');
 		});
 		
-		images.mouseleave(function() {
+		selector.mouseleave(function() {
 			$(this).css('opacity','0');
 		});
 	} else
@@ -80,22 +80,24 @@ $(document).ready(function() {
 	
 	// NSFW option and it's cookies
 	if ($.cookie('nsfw') == 'true') {
-		$('img.post_img').css('opacity','0');
+		var selector = $('img.post_img');
+		selector.css('opacity','0');
 		$('#nsfw').attr('checked',true);
-		temp_look(true);
+		temp_look(true,selector);
 	}
 	
 	$('#nsfw').change(function() {
 		var nsfw = $('#nsfw').is(':checked');
+		var selector = $('img.post_img');
 		if (nsfw) {
-			$('img.post_img').css('opacity','0');
+			selector.css('opacity','0');
 			$.cookie('nsfw',true,{path: '/'});
-			temp_look(true);
+			temp_look(true,selector);
 		}
 		else {
-			$('img.post_img').css('opacity','1.0');
+			selector.css('opacity','1.0');
 			$.cookie('nsfw',false,{path: '/'});
-			temp_look(false);
+			temp_look(false,selector);
 		}
 	});
 	
@@ -182,6 +184,9 @@ $(document).ready(function() {
 					var url = location.href;
 					location.href = "#bottom_cont";
 					history.replaceState(null,null,url);
+					
+					// NSFW pics
+					$('#nsfw').change()
 				}
 				else
 					$('#answer').html('Новых постов нет!');
