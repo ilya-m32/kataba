@@ -1,4 +1,8 @@
 #! -*- coding: utf-8 -*-
+# Python
+import os
+import Image
+from re import sub
 
 # Django
 from django.db import models
@@ -6,13 +10,8 @@ from django import forms
 from captcha.fields import CaptchaField
 from django.conf import settings
 from django.utils.html import escape
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_save
 from django.dispatch import receiver
-
-# Python
-import os
-import Image
-from re import sub
 
 class board(models.Model):
 	name = models.CharField(max_length=4)
@@ -57,13 +56,14 @@ class base_post_model(models.Model):
 
 	# Delete image and it's thumbnail
 	def delete_images(self,full_image=True,thumbnail=True):
-		if full_image:
-			os.remove(''.join([settings.MEDIA_ROOT,'/',self.image.name]))
-		if thumbnail:
-			os.remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]))
+		if self.image:
+			if full_image:
+				os.remove(''.join([settings.MEDIA_ROOT,'/',self.image.name]))
+			if thumbnail:
+				os.remove(''.join([settings.MEDIA_ROOT,'/thumbnails/',self.image.name]))
 
 	def make_thumbnail(self):
-		"""# Method which makes thumbnail. Surprise?"""
+		"""Method which makes thumbnail. Surprise?"""
 		if self.image:
 			ratio = min(settings.PIC_SIZE/self.image.height,settings.PIC_SIZE/self.image.width)
 			thumbnail = Image.open(self.image.path)
@@ -91,17 +91,11 @@ class base_post_model(models.Model):
 		return string
 
 	def save(self,*args,**kwargs):	
-		# Markup
-		self.text = self.markup(self.text)
-
 		# Making topic safe for database
 		self.topic = escape(self.topic)
 		
 		# Calling original save method
 		super(base_post_model,self).save(*args,**kwargs)
-
-		# Making tumbnail
-		self.make_thumbnail()
 		
 	def __unicode__(self):
 		return ''.join([self.topic,': ',self.text[:40],', ',str(self.date)])
@@ -185,8 +179,22 @@ class post_form(thread_form):
 	# Post can have sage
 	sage = forms.BooleanField(required=False)
 	
-# Use callback to delete images ('cause COLLADE does not call .delete())
+
+# Signals
+
+# Use callback to delete images ('cause CASCADE does not call .delete())
 @receiver(pre_delete,sender=thread)
 @receiver(pre_delete,sender=post)
-def pre_delete_callback(sender,**kwargs):
-	kwargs['instance'].delete_images()
+def pre_delete_callback(sender,instance,**kwargs):
+	instance.delete_images()
+
+# Callback here because changed save method makes markup more than once
+@receiver(post_save,sender=thread)
+@receiver(post_save,sender=post)
+def post_save_callback(sender,instance,**kwargs):
+	if kwargs['created']:
+		# Markup
+		instance.text = instance.markup(self.text)
+		
+		# Making tumbnail
+		instance.make_thumbnail()

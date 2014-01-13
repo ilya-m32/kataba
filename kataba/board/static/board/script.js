@@ -9,7 +9,7 @@ function temp_look(is_nsfw,selector) {
 			$(this).css('opacity','0');
 		});
 	} else
-		images.unbind();
+		selector.unbind();
 		
 }
 
