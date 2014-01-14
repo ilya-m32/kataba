@@ -4,21 +4,21 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 # Admin
 from django.contrib import admin
-from board.models import post, board, thread
+from board import models
 
 admin.autodiscover()
-admin.site.register([post, thread, board])
+admin.site.register([models.Post, models.Thread, models.Board])
 
 
 urlpatterns = patterns('',
-	# Main module
-	url(r'^',include('board.urls')),
-	
-	# Admin
-	url(r'^admin/', include(admin.site.urls)),
-	
-	# Captcha
-	url(r'^captcha/', include('captcha.urls')),
+    # Main module
+    url(r'^',include('board.urls')),
+    
+    # Admin
+    url(r'^admin/', include(admin.site.urls)),
+    
+    # Captcha
+    url(r'^captcha/', include('captcha.urls')),
 )
 
 # Images
