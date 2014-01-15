@@ -1,54 +1,54 @@
 {% extends "base_board.html" %}
 
 {% block title %}
-/{{boardname}}/: #{{page}}
+/{{board.name}}/: #{{page}}
 {% endblock %}
 
 {% block cent_title %}
-	Kataba: <span class='orange'>/{{boardname}}/</span>
+    Kataba: <span class='orange'>/{{board.name}}/</span>
 {% endblock %}
 
-{% block cloud_url %}/{{boardname}}/cloud/{% endblock %}
+{% block cloud_url %}/{{board.name}}/cloud/{% endblock %}
 
 {% block form %}
 <div id='div_form'>
-	<form method="post" id='send_form' enctype="multipart/form-data">
-		{% csrf_token %}
-		<div class='fullcenter'><b class='topic' id='form_switch'>Создать тред</b></div>
-		<div id='form_cont'>
-			<input type='hidden' name='boardname' id='boardname' value='{{boardname}}'>
-			<table id='form_table'>
-				{{ addthread }}
-			</table>
-			<div class='button' id='send_thread'>Отправить</div>
-		</div>	
-	</form>
-	
+    <form method="post" id='send_form' enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class='fullcenter'><b class='topic' id='form_switch'>Создать тред</b></div>
+        <div id='form_cont'>
+            <input type='hidden' name='boardname' id='boardname' value='{{board.name}}'>
+            <table id='form_table'>
+                {{ thread_form }}
+            </table>
+            <div class='button' id='send_thread'>Отправить</div>
+        </div>  
+    </form>
+    
 </div>
 {% endblock %}
 
 {% block content %}
-	{% for bundle in threads %}
-		{% with thread=bundle.thread %}
-			{% include "parts/thread.html" %}
-		{% endwith %}
-	
-		<div class='post_cont' id='post_cont'>
-			{% for post in bundle.posts %}
-				{% include "parts/post.html" %}
-			{% endfor %}
-		</div>
-	{% empty %}
-		<div class='fullcenter'><h1>Тредов на этой странице нет!</h1></div>
-	{% endfor %}
+    {% for bundle in threads %}
+        {% with thread=bundle.thread %}
+            {% include "parts/thread.html" %}
+        {% endwith %}
+    
+        <div class='post_cont' id='post_cont'>
+            {% for post in bundle.posts %}
+                {% include "parts/post.html" %}
+            {% endfor %}
+        </div>
+    {% empty %}
+        <div class='fullcenter'><h1>Тредов на этой странице нет!</h1></div>
+    {% endfor %}
 {% endblock %}
 
 {% block footer %}
-	<div id='bottom_cont'>
-		<div class='fullcenter' id='pages'>
-			{% for i in pages %}
-				<div class='button' data-name='{{boardname}}/{{i}}'>{{i}}</div>
-			{% endfor %}
-		</div>
-	</div>
+    <div id='bottom_cont'>
+        <div class='fullcenter' id='pages'>
+            {% for i in pages %}
+                <div class='button' data-name='{{board.name}}/{{i}}'>{{i}}</div>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}

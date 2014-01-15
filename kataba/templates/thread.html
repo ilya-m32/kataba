@@ -4,45 +4,45 @@
 {{thread.topic}} #{{ thread.id }}
 {% endblock %}
 
-{% block cloud_url %}/{{boardname}}/cloud {% endblock %}
+{% block cloud_url %}/{{board.name}}/cloud {% endblock %}
 
 {% block cent_title %}
-	Kataba: <span class='orange'>{{thread.topic}}</span>
+    Kataba: <span class='orange'>{{thread.topic}}</span>
 {% endblock %}
 
 {% block form %}
 <div id='div_form'>
-	<form method="post" id='send_form' enctype="multipart/form-data">
-		<input type='hidden' name='thread_id' id='thread_id' value='{{thread.id}}'>
-		<input type='hidden' name='boardname' id='boardname' value='{{boardname}}'>
-		{% csrf_token %}
-		<div class='fullcenter'><b class='topic' id='form_switch'>Добавить пост</b></div>
-		<div id='form_cont'>
-			
-			<table id='form_table'>
-				{{ addpost }}
-			</table>
-			<div class='button' id='send_post'>Отправить</div>
-		</div>	
-	</form>
+    <form method="post" id='send_form' enctype="multipart/form-data">
+        <input type='hidden' name='thread_id' id='thread_id' value='{{thread.id}}'>
+        <input type='hidden' name='boardname' id='boardname' value='{{boardname}}'>
+        {% csrf_token %}
+        <div class='fullcenter'><b class='topic' id='form_switch'>Добавить пост</b></div>
+        <div id='form_cont'>
+            
+            <table id='form_table'>
+                {{ post_form }}
+            </table>
+            <div class='button' id='send_post'>Отправить</div>
+        </div>  
+    </form>
 </div>
 {% endblock %}
 
 {% block content %}
-	
-	{% include "parts/thread.html" %}
-	
-	
-	<div class='post_cont' id='post_cont'>
-		{% for post in posts %}
-			{% include "parts/post.html" %}
-		{% endfor %}
-	</div>
+    
+    {% include "parts/thread.html" %}
+    
+    
+    <div class='post_cont' id='post_cont'>
+        {% for post in posts %}
+            {% include "parts/post.html" %}
+        {% endfor %}
+    </div>
 {% endblock %}
 
 {% block footer %}
-	<div id='bottom_cont'>
-		<div class='button' id='refresh'>Обновить тред</div><div id='answer'></div>
-		<div class='button' id='up'>Наверх</div>
-	</div>
+    <div id='bottom_cont'>
+        <div class='button' id='refresh'>Обновить тред</div><div id='answer'></div>
+        <div class='button' id='up'>Наверх</div>
+    </div>
 {% endblock %}

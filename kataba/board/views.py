@@ -3,6 +3,7 @@
 # Python modules
 import json
 import time
+import pprint
 
 # Django modules
 from django.http import HttpResponse, HttpResponseRedirect, Http404
@@ -25,95 +26,59 @@ class BoardView(ListView):
     model = models.Thread
     template_name = "board.html"
     context_object_name = "threads"
+    paginate_by = settings.THREADS
+
+    # Replaced dispatch method with declaration of new attr with board object.
+    def dispatch(self, *args, **kwargs):
+        self.board = get_object_or_404(models.Board.objects,name=kwargs['name'])
+        return super(BoardView, self).dispatch(*args, **kwargs)
 
     def get_queryset(self):
-        query = super(BoardView,self).get_queryset()
-        #print ('--------- ',query,' -----------')
-        return query
+        threads = self.model.objects.filter(board_id=self.board).order_by('update_time').reverse()
+
+        thread_container = [{} for i in xrange(len(threads))]
+        
+        for i in xrange(len(threads)):
+            thread_container[i]['thread'] = threads[i]
+            thread_container[i]['posts'] = models.Post.objects.filter(thread_id=threads[i].id).order_by('id').reverse()[:3]
+        return thread_container
 
     def get_context_data(self,**kwargs):
         context = super(BoardView,self).get_context_data(**kwargs)
-        
+        context['board'] = self.board
+        context['thread_form'] = models.ThreadForm()
         return context
 
-def board_view(request, boardname, page):
-    # get all boards
-    board = get_object_or_404(models.Board.objects,name=boardname)
-    
-    # is there page number?
-    if page == '':
-        page = 1
-    else:
-        page = int(page)
-        
-    # There can't be more pages than db has!
-    if page > board.pages:
-        raise Http404
-    
-    # Add thread
-    if request.method == 'POST':
-        form = models.ThreadForm(request.POST,request.FILES)
-        if form.is_valid():
-            current_time = time.strftime('%Y-%m-%d %H:%M:%S')
-            new_thread = models.Thread(
-                text=request.POST['text'],
-                topic=request.POST['topic'],
-                date=current_time,
-                update_time=current_time,
-                board_id=board,
-                image=request.FILES['image'],
-            )
+    ## Add thread
+    #if request.method == 'POST':
+        #form = models.ThreadForm(request.POST,request.FILES)
+        #if form.is_valid():
+            #current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+            #new_thread = models.Thread(
+                #text=request.POST['text'],
+                #topic=request.POST['topic'],
+                #date=current_time,
+                #update_time=current_time,
+                #board_id=board,
+                #image=request.FILES['image'],
+            #)
             
-            # Saving new thread
-            new_thread.save()
+            ## Saving new thread
+            #new_thread.save()
             
-            return HttpResponseRedirect(reverse('thread_view',args=[new_thread.id]))
-    else:
-        form = models.ThreadForm()
-    
-    # Getting threads
-    threads = models.Thread.objects.filter(board_id=board).order_by('update_time').reverse()[settings.THREADS*(page-1):settings.THREADS*page]
-    
-    thread_container = [{} for i in xrange(len(threads))]
-    
-    # adding 3 posts there and forming massive with dict.
-    for i in xrange(len(threads)):
-        thread_container[i]['thread'] = threads[i]
-        thread_container[i]['posts'] = models.Post.objects.filter(thread_id=threads[i].id).order_by('id').reverse()[:3]
+            #return HttpResponseRedirect(reverse('thread_view',args=[new_thread.id]))
+    #else:
+        #form = models.ThreadForm()
+class ThreadView(DetailView):
+    model = models.Thread
+    template_name = "thread.html"
+    context_object_name = 'thread'
 
-    args = {
-        'boardname':boardname,
-        'boards':models.Board.objects.all(),
-        'show_answer_thread':True,
-        'show_answer_post':False,
-        'threads':thread_container,
-        'page':page,
-        'pages':range(1,board.pages+1),
-        'addthread':form.as_table()
-    }
-    
-    return render(request,'board.html', args)
-    
-def thread_view(request,thread_id):
-    thread = get_object_or_404(models.Thread.objects,id=thread_id)
-    board = thread.board_id
-    boardname = board.name
-
-    # form
-    form = models.PostForm()
-    
-    threads = {}
-    
-    posts = models.Post.objects.filter(thread_id=thread_id)
-    
-    args = {
-        'boardname':boardname,
-        'boards':models.Board.objects.all(),
-        'thread':thread,
-        'posts': posts,
-        'addpost':form.as_table()
-    }
-    return render(request,'thread.html', args)
+    def get_context_data(self,**kwargs):
+        context = super(ThreadView,self).get_context_data(**kwargs)
+        context['post_form'] = models.PostForm()
+        context['posts'] = models.Post.objects.filter(thread_id=context['object'])
+        return context
 
 def post_view(request,post_id):
     # Thread id

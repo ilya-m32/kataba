@@ -10,7 +10,7 @@ urlpatterns = patterns('',
     url(r'^(?P<name>[a-z]{1,4})/(?P<page>[1-9]?)$',views.BoardView.as_view(),name='board_view'),
 
     # Thread
-    url(r'^thread/(?P<thread_id>[0-9]+)/$','board.views.thread_view',name='thread_view'),
+    url(r'^thread/(?P<pk>[0-9]+)/$',views.ThreadView.as_view(),name='thread_view'),
 
     # Move to post
     url(r'^post/(?P<post_id>[0-9]+)/$','board.views.post_view',name='post_view'),
