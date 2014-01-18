@@ -12,11 +12,11 @@
 
 {% block form %}
 <div id='div_form'>
-    <form method="post" id='send_form' enctype="multipart/form-data">
+    <form method="post" id='send_form' action="/{{board.name}}/add_thread" enctype="multipart/form-data">
         {% csrf_token %}
         <div class='fullcenter'><b class='topic' id='form_switch'>Создать тред</b></div>
         <div id='form_cont'>
-            <input type='hidden' name='boardname' id='boardname' value='{{board.name}}'>
+            <input type='hidden' name='board_name' id='board_name' value='{{board.name}}'>
             <table id='form_table'>
                 {{ thread_form }}
             </table>
@@ -46,9 +46,11 @@
 {% block footer %}
     <div id='bottom_cont'>
         <div class='fullcenter' id='pages'>
-            {% for i in pages %}
-                <div class='button' data-name='{{board.name}}/{{i}}'>{{i}}</div>
-            {% endfor %}
+            {% if is_paginated %}
+                {% for page in page_obj.paginator.page_range %}
+                    <div class='button' data-name='{{board.name}}/{{page}}'>{{page}}</div>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 {% endblock %}

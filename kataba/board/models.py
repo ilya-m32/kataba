@@ -10,12 +10,13 @@ from django import forms
 from captcha.fields import CaptchaField
 from django.conf import settings
 from django.utils.html import escape
-from django.db.models.signals import pre_delete, post_save
+from django.db.models.signals import pre_delete, post_save, pre_save
 from django.dispatch import receiver
 
 class Board(models.Model):
     name = models.CharField(max_length=4)
     pages = models.IntegerField(default=4)
+    thread_max_post = models.IntegerField(default=500)
     
     def __unicode__(self):
         return ''.join(['/',self.name,'/'])
@@ -120,9 +121,6 @@ class Thread(BasePostModel):
         threads_to_delete = cls.objects.filter(board_id=board).order_by('update_time').reverse()[board.pages*settings.THREADS:]
         for th in threads_to_delete:
             th.delete()
-        
-    def set_update_time(self,update_time):
-        self.update_time = update_time
     
     def save(self,*args,**kwargs):
         super(Thread,self).save(*args,**kwargs)
@@ -130,66 +128,29 @@ class Thread(BasePostModel):
         self.remove_old_threads(self.board_id)
 
     post_count = models.IntegerField(default=0)
-    update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
+    update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
 
-class Post(BasePostModel):
+class Post(BasePostModel):        
     thread_id = models.ForeignKey('thread') 
     sage = models.BooleanField(default=False)
 
-# Forms
-class ThreadForm(forms.Form):
-    topic = forms.CharField(
-        max_length = 40,
-        required = True,
-        label = u'Тема',
-        widget = forms.TextInput(
-            attrs = {
-                'size':'30',
-                'value':u'Без темы'
-            }
-        )
-    )
-    text = forms.CharField(
-        widget = forms.Textarea(
-            attrs = {'cols':'42'}
-        ),
-        max_length = 8000,
-        required = True,
-        label = u'Текст',
-        error_messages = {
-            'required': u'Вы ничего не написали в сообщении'
-        }
-    )
-    
-    image = forms.ImageField(
-        required = True,
-        label = u'Изображение',
-        error_messages = {
-            'required':u'Для треда нужна пикча.',
-            'invalid_image':u'Неверный формат изображения!'
-        }
-    )
-    
+class ThreadForm(forms.ModelForm):
     captcha = CaptchaField()
+    class Meta:
+        model = Thread
+        fields = ['topic','text','image']
 
-class PostForm(ThreadForm):
+class PostForm(forms.ModelForm):
+    captcha = CaptchaField()
     def __init__(self,*args,**kwargs):
         super(PostForm,self).__init__(*args,**kwargs)
-        self.fields.keyOrder = [
-            'topic',
-            'sage',
-            'text',
-            'image',
-            'captcha'
-        ]
-        
-        # Images are not required for posts
+        # Images and sage are not required for posts
         self.fields['image'].required = False
-    
-    # Post can have sage
-    sage = forms.BooleanField(required=False)
-    
-
+        self.fields['sage'].required = False
+        
+    class Meta:
+        model = Post
+        fields = ['topic','sage','text','image']
 # Signals
 
 # Use callback to delete images ('cause CASCADE does not call .delete())
@@ -198,16 +159,22 @@ class PostForm(ThreadForm):
 def pre_delete_callback(sender,instance,**kwargs):
     instance.delete_images()
 
-# Callback here because save does not always mean new object
-@receiver(post_save,sender=Thread)
-@receiver(post_save,sender=Post)
-def post_save_callback(sender,instance,**kwargs):
-    if kwargs['created']:
+# Callbacks here because save does not always mean new object
+@receiver(pre_save,sender=Thread)
+@receiver(pre_save,sender=Post)
+def pre_save_callback(sender,instance,**kwargs):
+    if not kwargs['update_fields']:
         # Topic must be safe
         instance.topic = escape(instance.topic)
         
         # Markup
         instance.text = instance.markup(instance.text)
-        
-        # Making tumbnail
+
+
+@receiver(post_save,sender=Thread)
+@receiver(post_save,sender=Post)
+def post_save_callback(sender,instance,**kwargs):
+    if kwargs['created']:
+        # Thumbnail
         instance.make_thumbnail()
+

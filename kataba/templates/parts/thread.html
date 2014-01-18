@@ -2,7 +2,7 @@
 <div class='thread' id='t{{thread.id}}'>
         <div class='post_header'>&nbsp;
             <div class='post_header_left'><b class='topic'>{{thread.topic}}</b> <span class='orange post_link'>#t{{thread.id}}</span> {{thread.date|date:"F d H:i:s"}}</div>
-            {% if not thread_hide_answer %} <div class='post_header_right'><a href='/thread/{{thread.id}}'>Ответить</a></div> {% endif %}
+            {% if not thread_hide_answer %} <div class='post_header_right'><a href='/{{board.name}}/thread/{{thread.id}}'>Ответить</a></div> {% endif %}
         </div>
         <div class='post_text'>
             {% if thread.image %}

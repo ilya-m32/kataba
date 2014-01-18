@@ -2,7 +2,7 @@ kataba
 ======
 Imageboard engine written with Python and Django.
 
-Written for Django >=1.4  and Python 2.x
+Written for Django >=1.5  and Python 2.x
 
 It uses following modules:
 

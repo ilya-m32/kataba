@@ -1,53 +1,52 @@
 {% extends "base.html" %}
 {% block header %}
-	<div id="search_cont">
-		<select id='search_board' name='search_board' required>
-			<option value="everywhere">Везде</option>
-			{% for board in boards %}
-				<option value="{{board.name}}">/{{board.name}}/</option>
-			{% endfor %}
-		</select>
-		
-		<select id='search_type' name='search_type' required>
-			<option value="both">Везде</option>
-			<option value="thread">Тред</option>
-			<option value="post">Пост</option>
-		</select>
-		<select id='search_place' name='search_place' required>
-			<option value="both">Везде</option>
-			<option value="topic">Тема</option>
-			<option value="text">Текст</option>
-		</select>
-		<input type='text' id='search_text' name='search_text' required>
-		<div class='button' id='send_search'>Найти</div>
-	</div>
+    <div id="search_cont">
+        <select id='search_board' name='search_board' required>
+            {% for board in boards %}
+                <option value="{{board.name}}">/{{board.name}}/</option>
+            {% endfor %}
+        </select>
+        
+        <select id='search_type' name='search_type' required>
+            <option value="both">Везде</option>
+            <option value="thread">Тред</option>
+            <option value="post">Пост</option>
+        </select>
+        <select id='search_place' name='search_place' required>
+            <option value="both">Везде</option>
+            <option value="topic">Тема</option>
+            <option value="text">Текст</option>
+        </select>
+        <input type='text' id='search_text' name='search_text' required>
+        <div class='button' id='send_search'>Найти</div>
+    </div>
 
 <div id='header'>
-	<div id='header_content'>
-		{% if boards %}
-			&nbsp;
-			<span class='green'>
-			{%for board in boards %}
-				/<a href="/{{board.name}}">{{board.name}}</a>/
-			{%endfor%}
-			</span>
-		{% endif%}
-		<div id='options_button'>
-			Опции
-		</div>
-		|
-		<div id='options'>
-			NSFW: <input type="checkbox" id='nsfw'> <br>
-			Пунктик 2<br>
-			Пунктик 3
-		</div>
-		<a href="{% block cloud_url %}/cloud/{% endblock %}" id='cloud'>Облако</a>
-	</div>
-	<span id='switch'>&lt;</span>
+    <div id='header_content'>
+        {% if boards %}
+            &nbsp;
+            <span class='green'>
+            {%for board in boards %}
+                /<a href="/{{board.name}}">{{board.name}}</a>/
+            {%endfor%}
+            </span>
+        {% endif%}
+        <div id='options_button'>
+            Опции
+        </div>
+        |
+        <div id='options'>
+            NSFW: <input type="checkbox" id='nsfw'> <br>
+            Пунктик 2<br>
+            Пунктик 3
+        </div>
+        <a href="{% block cloud_url %}/cloud/{% endblock %}" id='cloud'>Облако</a>
+    </div>
+    <span id='switch'>&lt;</span>
 </div>
 
 <div class='fullcenter title'>
-	{% block cent_title %}Kataba <span class='orange'>2.0</span>: Django edition{% endblock %}
+    {% block cent_title %}Kataba <span class='orange'>2.0</span>: Django edition{% endblock %}
 </div>
 
 {% block form %} {% endblock %}
