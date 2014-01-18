@@ -22,7 +22,7 @@ class Board(models.Model):
         return ''.join(['/',self.name,'/'])
         
 class SearchManager(models.Manager):
-    def search(self,search_text,search_place='topic',board=False):
+    def search(self,search_text, search_place='topic', board=False):
         # Making search text safe
         search_text = escape(search_text)
         
@@ -45,8 +45,8 @@ class SearchManager(models.Manager):
         
 class BasePostModel(models.Model):
     text = models.TextField(max_length=8000)
-    topic = models.CharField(max_length=40,blank=False,default=u'Без темы')
-    date = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=False)
+    topic = models.CharField(max_length=40, blank=False, default=u'Без темы')
+    date = models.DateTimeField('%Y-%m-%d %H:%M:%S', auto_now_add=True)
     image = models.ImageField(upload_to='.')
     
     # Link to board
@@ -105,7 +105,7 @@ class BasePostModel(models.Model):
             [r'\n',r'<br>'], 
         ]
         for one_markup in markups:
-            string = re.sub(one_markup[0],one_markup[1],string)
+            string = re.sub(one_markup[0], one_markup[1], string)
         return string
         
     def __unicode__(self):
@@ -117,18 +117,18 @@ class BasePostModel(models.Model):
 class Thread(BasePostModel):
     # Removing old threads
     @classmethod
-    def remove_old_threads(cls,board):
+    def remove_old_threads(cls, board):
         threads_to_delete = cls.objects.filter(board_id=board).order_by('update_time').reverse()[board.pages*settings.THREADS:]
         for th in threads_to_delete:
             th.delete()
     
-    def save(self,*args,**kwargs):
-        super(Thread,self).save(*args,**kwargs)
+    def save(self,*args, **kwargs):
+        super(Thread,self).save(*args, **kwargs)
         # No more old threads!
         self.remove_old_threads(self.board_id)
 
     post_count = models.IntegerField(default=0)
-    update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S',auto_now=True)
+    update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S', auto_now_add=True)
 
 class Post(BasePostModel):        
     thread_id = models.ForeignKey('thread') 
@@ -142,8 +142,8 @@ class ThreadForm(forms.ModelForm):
 
 class PostForm(forms.ModelForm):
     captcha = CaptchaField()
-    def __init__(self,*args,**kwargs):
-        super(PostForm,self).__init__(*args,**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(PostForm,self).__init__(*args, **kwargs)
         # Images and sage are not required for posts
         self.fields['image'].required = False
         self.fields['sage'].required = False
@@ -154,16 +154,17 @@ class PostForm(forms.ModelForm):
 # Signals
 
 # Use callback to delete images ('cause CASCADE does not call .delete())
-@receiver(pre_delete,sender=Thread)
-@receiver(pre_delete,sender=Post)
-def pre_delete_callback(sender,instance,**kwargs):
+@receiver(pre_delete, sender=Thread)
+@receiver(pre_delete, sender=Post)
+def pre_delete_callback(sender, instance, **kwargs):
     instance.delete_images()
 
 # Callbacks here because save does not always mean new object
-@receiver(pre_save,sender=Thread)
-@receiver(pre_save,sender=Post)
-def pre_save_callback(sender,instance,**kwargs):
-    if not kwargs['update_fields']:
+@receiver(pre_save, sender=Post)
+@receiver(pre_save, sender=Thread)
+def pre_save_callback(sender, instance, **kwargs):
+    # is it update for something or new object? If it is new, id is None
+    if instance.id is None:
         # Topic must be safe
         instance.topic = escape(instance.topic)
         
@@ -171,9 +172,9 @@ def pre_save_callback(sender,instance,**kwargs):
         instance.text = instance.markup(instance.text)
 
 
-@receiver(post_save,sender=Thread)
-@receiver(post_save,sender=Post)
-def post_save_callback(sender,instance,**kwargs):
+@receiver(post_save, sender=Thread)
+@receiver(post_save, sender=Post)
+def post_save_callback(sender, instance, **kwargs):
     if kwargs['created']:
         # Thumbnail
         instance.make_thumbnail()
