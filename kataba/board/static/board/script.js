@@ -59,11 +59,11 @@ function show_linked(selector) {
                 });
             }
             
-            cont.show();
+            cont.fadeIn();
         },
         function() {
             var cont = $(this).children('div.post_quote');
-            cont.hide();
+            cont.fadeOut();
         }
     
     );
@@ -206,7 +206,14 @@ $(document).ready(function() {
             },
             success: function(output) {
                 if (output.is_new) {
-                    $('#post_cont').html($('#post_cont').html()+output.new_threads);
+                    // Fast, but old version without animation.
+//                   $('#post_cont').html($('#post_cont').html()+output.new_threads);
+
+                    // Animated version
+                    var content = "<div class='inv_cont'>"+output.new_threads+"</div>"
+                    $('#post_cont').html($('#post_cont').html()+content);
+                    $('#post_cont div.inv_cont').last().fadeIn(700)
+
                     $('#answer').html('');
                     
                     // move to the page's end
@@ -214,7 +221,7 @@ $(document).ready(function() {
                     location.href = "#bottom_cont";
                     history.replaceState(null,null,url);
                     
-                    // NSFW pics
+                    // make NSFW new pics
                     $('#nsfw').change()
 
                     // Links
@@ -236,7 +243,7 @@ $(document).ready(function() {
         else {  
             $.cookie('form',false,{path: '/'});
         }
-        $('#form_cont').toggle();
+        $('#form_cont').slideToggle();
     });
     
     if ($.cookie('form') == 'true')
@@ -244,7 +251,7 @@ $(document).ready(function() {
 
     // Show/hide options
     $('#options_button').click(function() {
-        $('#options').toggle();
+        $('#options').slideToggle();
     });
     
     // Show/hide quoted posts/threads

@@ -53,7 +53,7 @@ class BoardView(ListView, BaseBoardClass):
         
         for i in xrange(len(threads)):
             thread_container[i]['thread'] = threads[i]
-            thread_container[i]['posts'] = list(models.Post.objects.filter(thread_id=threads[i].id))[-3:]
+            thread_container[i]['posts'] = threads[i].latest_posts()
         return thread_container
 
     def get_context_data(self, **kwargs):
@@ -70,6 +70,10 @@ class ThreadView(DetailView, BaseBoardClass):
         context = super(ThreadView,self).get_context_data(**kwargs)
         context['post_form'] = models.PostForm()
         context['posts'] = models.Post.objects.filter(thread_id=context['object'])
+
+        # Hide "Answer" button
+        context['thread_hide_answer'] = True
+        
         return context
 
 class ThreadAddView(JsonFormMixin, CreateView, BaseBoardClass):
@@ -99,6 +103,11 @@ class PostAddView(JsonFormMixin, CreateView, BaseBoardClass):
 
         # Calling original method
         response = super(PostAddView, self).form_valid(form, send_json=False)
+
+        # Test
+        print 'CONTEXT:'
+        #print self.context
+        #print self.context_object_name
 
         # Updating time of the last post
         if not form.instance.sage and current_thread.post_count < self.board.thread_max_post:

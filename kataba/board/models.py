@@ -127,6 +127,14 @@ class Thread(BasePostModel):
         # No more old threads!
         self.remove_old_threads(self.board_id)
 
+    def latest_posts(self,count=3):
+        if count:
+            posts = Post.objects.filter(thread_id=self).order_by('-id')[:count] # 9, 8, 7
+ #           posts.reverse() # 7, 8, 9
+        else:
+            posts = Post.objects.filter(thread_id=self)
+        return posts
+
     post_count = models.IntegerField(default=0)
     update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S', auto_now_add=True)
 
