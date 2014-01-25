@@ -37,23 +37,17 @@ class Board(models.Model):
         return ''.join(['/',self.name,'/'])
         
 class SearchManager(models.Manager):
-    def search(self,search_text, search_place='topic', board=False):
+    def search(self,search_text, search_place, board):
         # Making search text safe
         search_text = escape(search_text)
         
-        # Search only within one board?
-        if (board):
-            query = self.filter(board_id=board)
-        else:
-            query = self
-        
         # Where should we search?
         if (search_place == 'topic'):
-            query = query.filter(topic__icontains=search_text)
+            query = self.filter(topic__icontains=search_text)
         elif (search_place == 'text'):
-            query = query.filter(text__icontains=search_text)
+            query = self.filter(text__icontains=search_text)
         elif (search_place == 'both'):
-            query = query.filter(models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
+            query = self.filter(models.Q(topic__icontains=search_text) | models.Q(text__icontains=search_text))
         
         return query
 
@@ -143,11 +137,7 @@ class Thread(BasePostModel):
         self.remove_old_threads(self.board_id)
 
     def latest_posts(self,count=3):
-        if count:
-            posts = Post.objects.filter(thread_id=self).order_by('-id')[:count] # 9,8,7
-            posts = reversed(posts) # 7,8,8. Reversed is used because method reverse does not work after slice
-        else:
-            posts = Post.objects.filter(thread_id=self)
+        posts = reversed(Post.objects.filter(thread_id=self).order_by('-id')[:count]) # 9,8,7
         return posts
 
     post_count = models.IntegerField(default=0)
@@ -174,6 +164,7 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['topic','sage','text','image']
+
 # Signals
 
 # Use callback to delete images ('cause CASCADE does not call .delete())
