@@ -17,21 +17,18 @@ from board.mixins import JsonMixin, JsonFormMixin
 # Addition argument (board_name) will be taken from url.
 class BaseBoardClass(ContextMixin):
     def dispatch(self, *args, **kwargs):
-        # Current board
+        # Current board. Doing it here because sometimes I need it before get_context_data
         if 'board_name' in kwargs.keys():
             self.board = get_object_or_404(models.Board.objects,name=kwargs['board_name'])
         else:
             self.board = None
-        
-        # All boards
-        self.boards = models.Board.objects.all
         
         return super(BaseBoardClass, self).dispatch(*args, **kwargs)
 
     def get_context_data(self,**kwargs):
         context = super(BaseBoardClass,self).get_context_data(**kwargs)
         context['board'] = self.board
-        context['boards'] = self.boards
+        context['boards'] = models.Board.objects.all
         return context
 
 # Class for main page
@@ -47,14 +44,7 @@ class BoardView(ListView, BaseBoardClass):
     paginate_by = settings.THREADS
 
     def get_queryset(self):
-        threads = self.model.objects.filter(board_id=self.board).order_by('update_time').reverse()
-
-        thread_container = [{} for i in xrange(len(threads))]
-        
-        for i in xrange(len(threads)):
-            thread_container[i]['thread'] = threads[i]
-            thread_container[i]['posts'] = threads[i].latest_posts()
-        return thread_container
+        return self.board.get_board_view()
 
     def get_context_data(self, **kwargs):
         context = super(BoardView, self).get_context_data(**kwargs)
@@ -84,9 +74,7 @@ class ThreadAddView(JsonFormMixin, CreateView, BaseBoardClass):
         response = super(ThreadAddView, self).form_valid(form, send_json=False)
 
         # Addition argument for json answer - url of the new thread.
-        response.update({
-            'url': reverse('thread_view', args=[self.board.name, self.object.id])
-        })
+        response.update(url=reverse('thread_view', args=[self.board.name, self.object.id]))
 
         return self.render_json_answer(response) if send_json else response
 
@@ -103,11 +91,6 @@ class PostAddView(JsonFormMixin, CreateView, BaseBoardClass):
 
         # Calling original method
         response = super(PostAddView, self).form_valid(form, send_json=False)
-
-        # Test
-        print 'CONTEXT:'
-        #print self.context
-        #print self.context_object_name
 
         # Updating time of the last post
         if not form.instance.sage and current_thread.post_count < self.board.thread_max_post:
@@ -130,19 +113,16 @@ class ThreadUpdateView(JsonMixin, ListView):
     context_object_name = "posts"
 
     def get_queryset(self):
-        current_thread = get_object_or_404(models.Thread.objects, id=self.kwargs['thread_id'])
-        return self.model.objects.filter(thread_id=current_thread)[int(self.kwargs['posts_numb']):]
+        thread_id = self.kwargs['thread_id']
+        count = int(self.kwargs['posts_numb'])
+        return self.model.objects.filter(thread_id__id=thread_id)[count:]
 
     def render_to_response(self, context, **kwargs):
         is_new = True if context[self.context_object_name] else False
-        response = {
-            'is_new':is_new,
-        }
+        response = dict(is_new=is_new)
         if is_new:
             posts = super(ThreadUpdateView, self).render_to_response(context, **kwargs)
-            response.update({
-                'new_threads':posts.rendered_content,
-            })
+            response.update(new_threads=posts.rendered_content)
         return self.render_json_answer(response)
 
 class CloudIndexView(IndexView):
@@ -154,14 +134,7 @@ class CloudView(ListView, BaseBoardClass):
     context_object_name = "threads"
     
     def get_queryset(self):
-        threads = list(self.model.objects.filter(board_id=self.board).order_by('update_time').reverse())
-
-        # Threads number mod 3 must be = 0
-        for i in xrange(3-(len(threads) % 3)):
-            threads.append([])
-    
-        # Returning massive for cloud
-        return [[threads[i],threads[i+1],threads[i+2]] for i in xrange(0,len(threads),3)]
+        return self.board.get_cloud_view()
 
 class SingleThreadView(JsonMixin, DetailView):
     model = models.Thread
@@ -169,11 +142,9 @@ class SingleThreadView(JsonMixin, DetailView):
     template_name = 'parts/thread.html'
 
     def render_to_response(self, context, **kwargs):
-        context['thread_hide_answer'] = True
+        context.update(thread_hide_answer=True)
         data = super(SingleThreadView, self).render_to_response(context, **kwargs)
-        response = {
-            'answer': data.rendered_content
-        }
+        response = dict(answer=data.rendered_content)
         return self.render_json_answer(response)
 
 class SinglePostView(SingleThreadView):

@@ -17,6 +17,21 @@ class Board(models.Model):
     name = models.CharField(max_length=4)
     pages = models.IntegerField(default=4)
     thread_max_post = models.IntegerField(default=500)
+
+    def get_cloud_view(self):
+        # Threads. ("th" 'cause it is shorter)
+        threads = Thread.objects.filter(board_id=self).order_by('-update_time')
+        
+        # How many values should be.
+        count = len(threads) + 3 - len(threads) % 3
+        
+        # Giving back final array
+        f = lambda x,y: y[x] if x < len(y) else []
+        return [[f(k,threads) for k in xrange(i,i+3)] for i in xrange(0,count,3)]
+
+    def get_board_view(self):
+        threads = Thread.objects.filter(board_id=self).order_by('-update_time')
+        return [dict(thread=th, posts=th.latest_posts()) for th in threads]
     
     def __unicode__(self):
         return ''.join(['/',self.name,'/'])
@@ -118,7 +133,7 @@ class Thread(BasePostModel):
     # Removing old threads
     @classmethod
     def remove_old_threads(cls, board):
-        threads_to_delete = cls.objects.filter(board_id=board).order_by('update_time').reverse()[board.pages*settings.THREADS:]
+        threads_to_delete = cls.objects.filter(board_id=board).order_by('-update_time')[board.pages*settings.THREADS:]
         for th in threads_to_delete:
             th.delete()
     
@@ -129,8 +144,8 @@ class Thread(BasePostModel):
 
     def latest_posts(self,count=3):
         if count:
-            posts = Post.objects.filter(thread_id=self).order_by('-id')[:count] # 9, 8, 7
- #           posts.reverse() # 7, 8, 9
+            posts = Post.objects.filter(thread_id=self).order_by('-id')[:count] # 9,8,7
+            posts = reversed(posts) # 7,8,8. Reversed is used because method reverse does not work after slice
         else:
             posts = Post.objects.filter(thread_id=self)
         return posts

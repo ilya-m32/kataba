@@ -12,17 +12,17 @@
         <div id='cloud_cont'>
         {% for three_threads in threads %}
                 {% for thread in three_threads %}
-                        {%if thread %}
-                        <div class='img_cont img_cloud_cont'>
-                                <div>
-                                        <a href="/{{board.name}}/thread/{{thread.id}}">{{thread.topic|truncatechars:19}}
-                                </div>
-                                <img class='img_cloud' src='/images/thumbnails/{{thread.image.name}}' data-alt_name='/images/{{thread.image.name}}' title='{{thread.text|truncatechars:40}}'>
-                                        </a>
-                                <div>
-                                        [{{thread.post_count}}/{{board.thread_max_post}}]
-                                </div>  
-                        </div>
+                        {% if thread %}
+                            <div class='img_cont img_cloud_cont'>
+                                    <div>
+                                            <a href="/{{board.name}}/thread/{{thread.id}}">{{thread.topic|truncatechars:19}}
+                                    </div>
+                                    <img class='img_cloud' src='/images/thumbnails/{{thread.image.name}}' data-alt_name='/images/{{thread.image.name}}' title='{{thread.text|truncatechars:40}}'>
+                                            </a>
+                                    <div>
+                                            [{{thread.post_count}}/{{board.thread_max_post}}]
+                                    </div>  
+                            </div>
                         {% endif %}
                 {% endfor %}
                 <br style='clear: both'>
