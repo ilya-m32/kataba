@@ -3,7 +3,12 @@ import os
 
 DJANGO_DIR=''.join([os.path.dirname(os.path.realpath(__file__)),'/../'])
 
-DEBUG = True
+DEBUG = False
+
+#DEBUG = True
+#TEMPLATE_DEBUG = DEBUG
+
+ALLOWED_HOSTS = ['board.confach.ru']
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -13,26 +18,30 @@ MANAGERS = ADMINS
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.4/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = []
+
+MEDIA_ROOT = ''.join([DJANGO_DIR,"/static/images/"])
+MEDIA_URL = '/images/'
+STATIC_ROOT = ''.join([DJANGO_DIR,"/static/"])
+STATIC_URL = '/static/'
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''.join([DJANGO_DIR,'/images/'])
+#MEDIA_ROOT = ''.join([DJANGO_DIR,'/static/'])
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = '/images/'
+#MEDIA_URL = '/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+#STATIC_ROOT = '/static/'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+#STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -120,3 +129,4 @@ INSTALLED_APPS = (
         #},
     #}
 #}
+

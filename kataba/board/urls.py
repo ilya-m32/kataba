@@ -39,4 +39,6 @@ urlpatterns = patterns('',
     # Search
     url(r'^search/(?P<board_name>([a-z]{1,3}))/(?P<search_type>(thread|post|both))/(?P<search_place>(topic|text|both))/(?P<search_text>.+)$',views.SearchView.as_view(),name='search'),
     
+    # All by tag
+    url(r'^tag/(?P<tag>(.+))/$', views.TagView.as_view()), 
 )

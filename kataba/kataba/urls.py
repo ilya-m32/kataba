@@ -7,7 +7,7 @@ from django.contrib import admin
 from board import models
 
 admin.autodiscover()
-admin.site.register([models.Post, models.Thread, models.Board])
+admin.site.register([models.Post, models.Thread, models.Board, models.Tag])
 
 
 urlpatterns = patterns('',

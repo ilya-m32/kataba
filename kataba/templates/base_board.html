@@ -37,8 +37,12 @@
         |
         <div id='options'>
             NSFW: <input type="checkbox" id='nsfw'> <br>
-            Пунктик 2<br>
-            Пунктик 3
+            Тема: 
+            <select id='select_style'> 
+                <option value="style_default.css">Default</option>
+                <option value="style_grey.css">Grey</option>
+                <option value="style_grey_blue.css">Grey Blue</option>
+            </select>
         </div>
         <a href="{% block cloud_url %}/cloud/{% endblock %}" id='cloud'>Облако</a>
     </div>
