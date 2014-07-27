@@ -1,0 +1,30 @@
+#id_tagcomplete {
+    position: absolute;
+    display: none;
+    background-color: #1E1E1E;
+    padding: 8px;
+    border: 1px solid #595959;
+    min-width: 150px;
+    max-width: 40%;
+    width: auto;
+    border-radius: 4px;
+}
+
+#id_tagcomplete div {
+    background-color: #2E2E2E;
+    color: white;
+    font-size: 120%;
+    margin: 3px;
+    padding: 2px;
+    border: inherit;
+    border-color: transparent;
+    border-radius: inherit;
+}
+
+#id_tagcomplete div:hover {
+    border-color: inherit;
+}
+
+#id_tagcomplete div:hover {
+    border-color: inherit;
+}
