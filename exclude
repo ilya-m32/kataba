@@ -8,6 +8,6 @@
 *.pyc
 *.log
 local_settings.py
-kataba/images/*
-kataba/images/thumbnails/*
+kataba/images/*.*
+kataba/images/thumbnails/*.*
 kataba/kataba_db
