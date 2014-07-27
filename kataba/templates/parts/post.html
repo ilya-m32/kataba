@@ -14,9 +14,9 @@
         <div class='post_text'>
                 {% if post.image %}
                         <div class='img_cont' data-is_thumbnail="1">
-                            <div><a href="/images/{{post.image.name}}">{{post.image.name|slice:"2:"|truncatechars:19}}</a></div>
-                            <img class='post_img_thumb' src='/images/thumbnails/{{post.image.name}}' alt='{{post.image.name|slice:"2:"}}'>
-                            <img class='post_img' src='' data-src='/images/{{post.image.name}}' alt=''>
+                            <div><a href="{{MEDIA_URL}}/{{post.image.name}}">{{post.image.name|slice:"2:"|truncatechars:19}}</a></div>
+                            <img class='post_img_thumb' src='{{MEDIA_URL}}/thumbnails/{{post.image.name}}' alt='{{post.image.name|slice:"2:"}}'>
+                            <img class='post_img' src='' data-src='{{MEDIA_URL}}/{{post.image.name}}' alt=''>
                         </div>
                 {% endif %}
                 {{post.text}}

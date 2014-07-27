@@ -6,21 +6,21 @@
             {% if board.thread_max_post %} <b>[<span class='orange'>{{thread.post_count}}/{{board.thread_max_post}}</span>]</b> {%endif%}
                 {% if thread.get_tags %}
                     {% for tag in thread.get_tags %}
-                        <a href="/tag/{{tag}}/">{{tag}}</a>{% if not forloop.last %},{% endif %} 
+                        <a href="/tag/{{tag.url}}/">{{tag.name}}</a>{% if not forloop.last %},{% endif %} 
                     {% endfor %}
                 {% else %}
                     Тэгов нет.
                 {% endif %}
         </div>
             {% if not thread_hide_answer %} <div class='post_header_right'>
-            <a href='/{% if board.name %} {{board.name}} {% else %}{{thread.board_id.name}}{% endif %}/thread/{{thread.id}}'>Ответить</a></div> {% endif %}
+            <a href='/{% if board.name %}{{board.name}}{% else %}{{thread.board_id.name}}{% endif %}/thread/{{thread.id}}'>Ответить</a></div> {% endif %}
         </div>
         <div class='post_text'>
             {% if thread.image %}
                 <div class='img_cont' data-is_thumbnail="1">
-                    <div><a href="/images/{{thread.image.name}}">{{thread.image.name|slice:"2:"|truncatechars:19}}</a></div>
-                    <img class='post_img_thumb' src='/images/thumbnails/{{thread.image.name}}' alt='{{thread.image.name|slice:"2:"}}'>
-                    <img class='post_img' src='' data-src='/images/{{thread.image.name}}' alt=''>
+                    <div><a href="{{MEDIA_URL}}/{{thread.image.name}}">{{thread.image.name|slice:"2:"|truncatechars:19}}</a></div>
+                    <img class='post_img_thumb' src='{{MEDIA_URL}}/thumbnails/{{thread.image.name}}' alt='{{thread.image.name|slice:"2:"}}'>
+                    <img class='post_img' src='' data-src='{{MEDIA_URL}}/{{thread.image.name}}' alt=''>
                 </div>
             {% endif %}
         {{thread.text}}

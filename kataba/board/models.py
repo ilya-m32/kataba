@@ -1,17 +1,28 @@
 #-*- encoding=UTF-8 -*-
 # Python
 import os
-import Image
 import re
+
+# Image module for making thumbnails and validation
+try:
+    # We're trying to import PIL fork by default
+    from PIL import Image
+except ImportError:
+    # But old image module is fine too 
+    import Image
 
 # Django
 from django.db import models
 from django import forms
-from captcha.fields import CaptchaField
 from django.conf import settings
 from django.utils.html import escape
 from django.db.models.signals import pre_delete, post_save, pre_save
 from django.dispatch import receiver
+
+# Separate modules
+from captcha.fields import CaptchaField
+from simple_tags.mixins import TagMixin
+from simple_tags.forms import TagCompleteField
 
 class Board(models.Model):
 
@@ -36,42 +47,6 @@ class Board(models.Model):
     
     def __unicode__(self):
         return ''.join(('/', self.name, '/'))
-
-class Tag(models.Model):
-
-    name = models.CharField(max_length=50, blank=False)
-
-    @staticmethod
-    def add_new_tags(tags, target, is_post=False):
-        # Recives raw tag list ("asd, qwerty, qqq") and saves it
-        for tag in map(lambda x: escape(x.strip().capitalize()), tags.split(',')):
-            if len(tag) > 3:
-                    tag_object = Tag.objects.filter(name=tag)
-                    
-                    if not tag_object:
-                        tag_object = Tag(name=tag)
-                        tag_object.save()
-                    else:
-                        tag_object = tag_object[0]
-
-                    if is_post:
-                        TagToPost(tag=tag_object, post=target).save()
-                    else:
-                        TagToThread(tag=tag_object, thread=target).save()
-
-
-
-
-class TagToThread(models.Model):
-
-    tag = models.ForeignKey('Tag')
-    thread = models.ForeignKey('Thread')
-
-class TagToPost(models.Model):
-
-    tag = models.ForeignKey('Tag')
-    post = models.ForeignKey('Post')
-
         
 class SearchManager(models.Manager):
 
@@ -103,11 +78,11 @@ class BasePostModel(models.Model):
     # Custom Manager
     objects = SearchManager()
 
-    # Delete image and it's thumbnail
     def delete_images(self):
+        """Delete imagea and it's thumbnail"""
         if self.image:
             images = (''.join((settings.MEDIA_ROOT, '/', self.image.name)),
-                      ''.join((settings.MEDIA_ROOT, '/thumbnails/', self.image.name)) )
+                      ''.join((settings.MEDIA_ROOT, '/thumbnails/', self.image.name)))
             for image in images:
                 if os.path.isfile(image):
                     os.remove(image)
@@ -117,7 +92,7 @@ class BasePostModel(models.Model):
         if self.image:
             ratio = min(settings.PIC_SIZE/self.image.height, settings.PIC_SIZE/self.image.width)
             thumbnail = Image.open(self.image.path)
-            thumbnail.thumbnail((int(self.image.width*ratio),int(self.image.height*ratio)), Image.ANTIALIAS)
+            thumbnail.thumbnail((int(self.image.width*ratio), int(self.image.height*ratio)), Image.ANTIALIAS)
             thumbnail.save(''.join((settings.MEDIA_ROOT, '/thumbnails/', self.image.name)), thumbnail.format)
             return True
         else:
@@ -127,7 +102,7 @@ class BasePostModel(models.Model):
     def markup(string):
         """ Makes markup for post and thread text. Strings will be safe. """
         string = escape(string)
-        markups = [
+        markups = (
             # quote
             [r'(?P<text>(?<!(&gt;))&gt;(?!(&gt;)).+)', r'<span class="quote">\g<text></span>'], 
             
@@ -150,7 +125,7 @@ class BasePostModel(models.Model):
             
             # new line
             [r'\n',r'<br>'], 
-        ]
+        )
         for one_markup in markups:
             string = re.sub(one_markup[0], one_markup[1], string)
         return string
@@ -161,11 +136,14 @@ class BasePostModel(models.Model):
     class Meta:
         abstract = True
 
-class Thread(BasePostModel):
+class Thread(BasePostModel, TagMixin):
 
-    # Removing old threads
+    post_count = models.IntegerField(default=0)
+    update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S', auto_now_add=True)
+
     @classmethod
     def remove_old_threads(cls, board):
+        """Removes old threads by chosen board"""
         threads_to_delete = cls.objects.filter(board_id=board).order_by('-update_time')[board.pages*settings.THREADS:]
         for th in threads_to_delete:
             th.delete()
@@ -175,42 +153,49 @@ class Thread(BasePostModel):
         # No more old threads!
         self.remove_old_threads(self.board_id)
 
-    def latest_posts(self,count=3):
+    def latest_posts(self, count=3):
         posts = reversed(Post.objects.filter(thread_id=self).order_by('-id')[:count]) # 9,8,7
         return posts
-
-    # Get all tags for thread
-    def get_tags(self):
-        return [i.tag.name for i in TagToThread.objects.filter(thread=self)]
-
-    post_count = models.IntegerField(default=0)
-    update_time = models.DateTimeField('%Y-%m-%d %H:%M:%S', auto_now_add=True)
 
 class Post(BasePostModel):
 
     thread_id = models.ForeignKey('thread') 
     sage = models.BooleanField(default=False)
 
-    # Get all tags for post
-    def get_tags(self):
-        return [i.tag.name for i in TagToPost.objects.filter(post=self)]
+
+class MarkupWidget(forms.widgets.Widget):
+
+    def render(self, name, value, attrs=None):
+        buttons = (
+            ('<b>b</b>', '**'),
+            ('<i>i</i>', '*'),
+            ('spoiler', '%%'),
+        )
+        buttons_html = ''
+        for button in buttons:
+            buttons_html += ''.join(('<div class="button button_markup" data_symbol="',
+                button[1],'">', button[0], '</div>'))
+        return u"""<div id='{0}'>{1}</div>""".format(name, buttons_html)
+
+class MarkupField(forms.fields.Field):
+
+    widget = MarkupWidget
+
 
 class ThreadForm(forms.ModelForm):
-    tags = forms.CharField(max_length=100, required=False, label=u'Тэги:')
+
     captcha = CaptchaField()
+    markup = MarkupField(label='')
+    tagcomplete = TagCompleteField(label='', required=False)
+    tags = forms.CharField(max_length=100, required=False, label=u'Тэги:')
 
     class Meta:
         model = Thread
-        fields = ['topic', 'text', 'tags', 'image']
-
-    # Get all tags for post
-    def get_tags(self):
-        return TagToThread.objects.filter(thread=self)
+        fields = ['topic', 'markup', 'text', 'tags', 'tagcomplete', 'image', 'captcha']
 
 class PostForm(forms.ModelForm):
 
     captcha = CaptchaField()
-    tags = forms.CharField(max_length=100, required=False, label=u'Тэги:')
 
     def __init__(self, *args, **kwargs):
         super(PostForm, self).__init__(*args, **kwargs)
@@ -220,7 +205,7 @@ class PostForm(forms.ModelForm):
         
     class Meta:
         model = Post
-        fields = ['topic','sage','text', 'tags', 'image']
+        fields = ['topic','sage','text', 'image']
 
 # Signals
 
@@ -247,6 +232,5 @@ def pre_save_callback(sender, instance, **kwargs):
 @receiver(post_save, sender=Post)
 def post_save_callback(sender, instance, **kwargs):
     if kwargs['created']:
-        # Thumbnail
         instance.make_thumbnail()
 

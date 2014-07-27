@@ -9,7 +9,7 @@ class JsonMixin(object):
     def render_json_answer(self, data, *args, **kwargs):
         """ Recieves dict. and gives back HttpResponse object with json data """
         data = json.dumps(data)
-        return HttpResponse(data,self.content_type)
+        return HttpResponse(data, self.content_type)
 
 class JsonFormMixin(JsonMixin):
     http_method_names = ['post']

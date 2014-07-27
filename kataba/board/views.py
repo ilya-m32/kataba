@@ -11,8 +11,11 @@ from django.views.generic.edit import CreateView
 from django.utils.html import escape
 
 # Kataba modules
-from board import models
+import board
 from board.mixins import JsonMixin, JsonFormMixin
+
+# Tags
+import simple_tags
 
 # Base class with changed context and dispatcher method (addition attributes - self.board, self.boards).
 # Addition argument (board_name) will be taken from url.
@@ -21,7 +24,7 @@ class BaseBoardClass(ContextMixin):
     def dispatch(self, *args, **kwargs):
         # Current board. Doing it here because sometimes I need it before get_context_data
         if 'board_name' in kwargs.keys():
-            self.board = get_object_or_404(models.Board.objects, name=kwargs['board_name'])
+            self.board = get_object_or_404(board.models.Board.objects, name=kwargs['board_name'])
         else:
             self.board = None
 
@@ -34,14 +37,14 @@ class BaseBoardClass(ContextMixin):
         context['style'] = escape(self.request.COOKIES.get('style', 'style_default.css'))
 
         context['board'] = self.board
-        context['boards'] = models.Board.objects.all
+        context['boards'] = board.models.Board.objects.all
 
         return context
 
 # Class for main page
 class IndexView(ListView):
 
-    model = models.Board
+    model = board.models.Board
     template_name = "index.html"
     context_object_name = "boards"
 
@@ -52,7 +55,7 @@ class IndexView(ListView):
 
 class BoardView(ListView, BaseBoardClass):
 
-    model = models.Thread
+    model = board.models.Thread
     template_name = "board.html"
     context_object_name = "threads"
     paginate_by = settings.THREADS
@@ -63,19 +66,19 @@ class BoardView(ListView, BaseBoardClass):
     def get_context_data(self, **kwargs):
         context = super(BoardView, self).get_context_data(**kwargs)
 
-        context['thread_form'] = models.ThreadForm()
+        context['thread_form'] = board.models.ThreadForm()
         return context
 
 class ThreadView(DetailView, BaseBoardClass):
 
-    model = models.Thread
+    model = board.models.Thread
     template_name = 'thread.html'
     context_object_name = 'thread'
 
     def get_context_data(self, **kwargs):
         context = super(ThreadView,self).get_context_data(**kwargs)
-        context['post_form'] = models.PostForm()
-        context['posts'] = models.Post.objects.filter(thread_id=context['object'])
+        context['post_form'] = board.models.PostForm()
+        context['posts'] = board.models.Post.objects.filter(thread_id=context['object'])
 
         # Hide "Answer" button
         context['thread_hide_answer'] = True
@@ -84,8 +87,8 @@ class ThreadView(DetailView, BaseBoardClass):
 
 class ThreadAddView(JsonFormMixin, CreateView, BaseBoardClass):
 
-    form_class = models.ThreadForm
-    model = models.Thread
+    form_class = board.models.ThreadForm
+    model = board.models.Thread
 
     def form_valid(self, form, send_json=True):
         response = super(ThreadAddView, self).form_valid(form, send_json=False)
@@ -93,19 +96,19 @@ class ThreadAddView(JsonFormMixin, CreateView, BaseBoardClass):
         # Addition argument for json answer - url of the new thread.
         response.update(url=reverse('thread_view', args=[self.board.name, self.object.id]))
 
-        # Add new tags
-        models.Tag.add_new_tags(tags=self.request.REQUEST.get('tags', ''), target=self.object, is_post=False)
+        # Add tags
+        self.object.add_tags(tags=self.request.REQUEST.get('tags', ''))
 
         return self.render_json_answer(response) if send_json else response
 
 class PostAddView(JsonFormMixin, CreateView, BaseBoardClass):
 
-    form_class = models.PostForm
-    model = models.Post
+    form_class = board.models.PostForm
+    model = board.models.Post
 
     def form_valid(self, form, send_json=True):
         # Thread
-        current_thread = get_object_or_404(models.Thread.objects, id=self.kwargs['thread_id'])
+        current_thread = get_object_or_404(board.models.Thread.objects, id=self.kwargs['thread_id'])
 
         # Connect thread and future form
         form.instance.thread_id = current_thread
@@ -120,21 +123,18 @@ class PostAddView(JsonFormMixin, CreateView, BaseBoardClass):
         # Post count increment
         current_thread.post_count += 1
         current_thread.save()
-
-        # Add new tags
-        models.Tag.add_new_tags(tags=self.request.REQUEST.get('tags', ''), target=self.object, is_post=True)
         
         return self.render_json_answer(response) if send_json else response
 
 class PostView(RedirectView):
 
     def get_redirect_url(self, pk):
-        thread = get_object_or_404(models.Post, id=pk).thread_id
+        thread = get_object_or_404(board.models.Post, id=pk).thread_id
         return reverse('thread_view', args=[thread.board_id.name, thread.id])
 
 class ThreadUpdateView(JsonMixin, ListView):
 
-    model = models.Post
+    model = board.models.Post
     template_name = "parts/posts.html"
     context_object_name = "posts"
 
@@ -157,7 +157,7 @@ class CloudIndexView(IndexView):
 
 class CloudView(ListView, BaseBoardClass):
 
-    model = models.Thread
+    model = board.models.Thread
     template_name = 'cloud/cloud.html'
     context_object_name = "threads"
     
@@ -166,7 +166,7 @@ class CloudView(ListView, BaseBoardClass):
 
 class SingleThreadView(JsonMixin, DetailView):
 
-    model = models.Thread
+    model = board.models.Thread
     context_object_name = 'thread'
     template_name = 'parts/thread.html'
 
@@ -178,7 +178,7 @@ class SingleThreadView(JsonMixin, DetailView):
 
 class SinglePostView(SingleThreadView):
 
-    model = models.Post
+    model = board.models.Post
     context_object_name = 'post'
     template_name = 'parts/post.html'
 
@@ -189,8 +189,8 @@ class SearchView(TemplateView, BaseBoardClass):
     def get_context_data(self, search_text, search_place, search_type, **kwargs):
         context = super(SearchView, self).get_context_data(**kwargs)
         context.update({
-            'threads': models.Thread.objects.search(search_text, search_place, self.board) if search_type != 'post' else [],
-            'posts': models.Post.objects.search(search_text, search_place, self.board) if search_type != 'thread' else [],
+            'threads': board.models.Thread.objects.search(search_text, search_place, self.board) if search_type != 'post' else [],
+            'posts': board.models.Post.objects.search(search_text, search_place, self.board) if search_type != 'thread' else [],
             'post_show_answer': True,
             'thread_hide_answer': False,
         })
@@ -202,12 +202,11 @@ class TagView(TemplateView, BaseBoardClass):
 
     def get_context_data(self, tag, **kwargs):
 
-        tag = get_object_or_404(models.Tag.objects, name=escape(tag))
+        tag = get_object_or_404(simple_tags.models.Tag.objects, name=escape(tag))
 
         context = super(TagView, self).get_context_data(**kwargs)
         context.update({
-            'threads': [i.thread for i in models.TagToThread.objects.filter(tag=tag)],
-            'posts': [i.post for i in models.TagToPost.objects.filter(tag=tag)],
+            'threads': [i.content_object for i in simple_tags.models.TagToTarget.objects.filter(tag=tag)],
             'post_show_answer': True,
             'thread_hide_answer': False,
         })
